@@ -1,6 +1,14 @@
 # grplinst
 Module for the CRPropa code to calculate the effect of plasma instabilities on the development of electromagnetic cascades
 
+## Science
+
+This code was designed to study the effects of plasma instabilities on the development of blazar-induced gamma-ray cascades in the intergalactic medium. 
+
+It provides *approximate* descriptions for some plasma instability models found in the literature. 
+They are modelled as a cooling term for electrons/positrons. Note that this is a very rough approximation and a detailed calculation would require particle-in-cell (PIC) simulations.
+
+
 
 ## Installation Instruction
 
