@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 
 # Change name of the library to something meaningful!
-set(PLUGINNAME "GRPlInst")
+set(PLUGINNAME "grplinst")
 project(${PLUGINNAME} C CXX)
 
 find_package(PythonInterp)
