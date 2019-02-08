@@ -44,7 +44,7 @@ import grplinst as plinst
 
 
 z = 0.14 # redshift of the source
-nIGM = 1e-13 # density of the intergalactic medium in m^-3
+nIGM = 1e-1 # density of the intergalactic medium in m^-3
 L = 1e38 # luminosity of the beam in W
 T = 1e5 # temperature of the intergalactic medium in K
 
