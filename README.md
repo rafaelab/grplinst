@@ -24,7 +24,11 @@ make
 ```
 
 4. If the code was properly compiled, you are ready to go!
-You can now include it as a CRPropa module as follows:
+
+
+## An example
+
+To use this code, you can include it as a CRPropa module as follows:
 
 ```
 from crpropa import *
@@ -34,7 +38,7 @@ import grplinst as plinst
 z = 0.14 # redshift of the source
 nIGM = 1e-13 # density of the intergalactic medium in m^-3
 L = 1e38 # luminosity of the beam in W
-T = 1e5 # temperature of the intergalactic medium
+T = 1e5 # temperature of the intergalactic medium in K
 
 obs = Observer()
 obs.add(ObserverPoint())
