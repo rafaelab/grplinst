@@ -1,5 +1,7 @@
 # grplinst
-Module for the CRPropa code to calculate the effect of plasma instabilities on the development of electromagnetic cascades
+Module for the CRPropa code to calculate the effect of plasma instabilities on the development of electromagnetic cascades.
+It is described in:
+R. Alves Batista, A. Saveliev, E. M. de Gouveia Dal Pino. arXiv:1904.13345.
 
 ## Science
 
