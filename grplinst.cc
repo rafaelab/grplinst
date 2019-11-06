@@ -108,11 +108,23 @@ double PlasmaInstability::coolingPowerA(double E, double z) const {
 	double L = luminosityBeam;
 	E /= (1 + z);
 	double eta = 1.;
-	double Ethr = 8.7e-6 * pow(1 + z, -13 / 6) * pow(L / 1e38, -1 / 3) * pow(nIGM / 0.1, 1 / 3);
-	if (E < Ethr)
-		return 7.7e-26 * eta * pow(1 + z, 8) * pow(E / TeV, 3) * (L / 1e38) * pow(nIGM / 0.1, -0.5);
-	else
-		return 2.3e-22 * eta * pow(1 + z, 11 / 3) * (E / TeV) * pow(L / 1e38, 1 / 3) * pow(nIGM / 0.1, 1 / 6);
+	double Ethr = 8.7e-6 * pow(1 + z, -13. / 6) * pow(L / 1e38, -1. / 3) * pow(nIGM / 0.1, 1. / 3);
+
+	double a0, a1, a2, a3, a4;
+	if (E < Ethr) {
+		a0 = 7.7e-26;
+		a1 = 8.;
+		a2 = 3.;
+		a3 = 1.;
+		a4 = -1. / 2;
+	} else {
+		a0 = 2.3e-22;
+		a1 = 11. / 3;
+		a2 = 1.;
+		a3 = 1. / 3.;
+		a4 = 1. / 6.;
+	}
+	return a0 * eta * pow(1 + z, a1) * pow(E / TeV, a2) * pow(L / 1e38, a3) * pow(nIGM / 0.1, a4);
 }
 
 double PlasmaInstability::coolingPowerB(double E, double z) const {
@@ -130,12 +142,26 @@ double PlasmaInstability::coolingPowerC(double E, double z) const {
 	E /= (1 + z);
 
 	double eta = 1.;
-	double Ethr = 7.9e-8 * pow(1 + z, -9 / 4) * pow(L / 1e38, -0.5) * pow(nIGM / 0.1, 0.5) * (T / 1e4);
+	double Ethr = 7.9e-8 * pow(1 + z, -9. / 4) / sqrt(L / 1e38) * pow(nIGM / 0.1, 0.5) * (T / 1e4);
 	double F = 1 + 1.25 * log(T / 1e4) - 0.25 * log(nIGM / 0.1) + 0.5 * log(1 + z);
-	if (E < Ethr)
-		return 4.7e-30 * eta * pow(1 + z, -5) * pow(E / TeV, -1) * pow(L / 1e38, 1 / 3) * pow(nIGM / 0.1, 5 / 6) * pow(T / 1e4, 2);
-	else
-		return 1.4e-23 * eta * pow(1 + z, 11 / 3) * (E / TeV) * pow(L / 1e38, 1 / 3) * pow(nIGM / 0.1, 1 / 6) / F;
+
+	double a0, a1, a2, a3, a4, b;
+	if (E < Ethr) {
+		a0 = 4.7e-30;
+		a1 = -5;
+		a2 = -1;
+		a3 = 1. / 3.;
+		a4 = 5. / 6.;
+		b = pow(T / 1e4, 2);
+	} else {
+		a0 = 1.4e-23;
+		a1 = 11. / 3;
+		a2 = 1;
+		a3 = 1. / 3.;
+		a4 = 1. / 6.;
+		b = 1 / F;
+	}
+	return a0 * eta * pow(1 + z, a1) * pow(E / TeV, a2) * pow(L / 1e38, a3) * pow(nIGM / 0.1, a4) * b;
 }
 
 double PlasmaInstability::coolingPowerD(double E, double z) const {
@@ -147,11 +173,23 @@ double PlasmaInstability::coolingPowerD(double E, double z) const {
 	E /= (1 + z);
 	double eta = 1.; // for now fixed; should add a function to play with it.
 
-	double Ethr = 6.9e-6 * pow(1 + z, -13 / 16) * pow(L / 1e38, -1/3) * pow(nIGM / 0.1, -0.5);
-	if (E < Ethr)
-		return 3.9e-25 * eta * pow(1 + z, 8) * pow(E / TeV, 3) * (L / 1e38) * pow(nIGM / 0.1, -1 / 2);
-	else
-		return 1.2e-22 * eta * pow(1 + z, 11 / 3) * (E / TeV) * pow(L / 1e38, 1 / 3) * pow(nIGM / 0.1, 1 / 6);
+	double Ethr = 6.9e-6 * pow(1 + z, -13. / 16) * pow(L / 1e38, -1. / 3) / sqrt(nIGM / 0.1);
+
+	double a0, a1, a2, a3, a4, b;
+	if (E < Ethr) {
+		a0 = 3.9e-25;
+		a1 = 8.;
+		a2 = 3.;
+		a3 = 1.;
+		a4 = -0.5;
+	} else {
+		a0 = 1.2e-22;
+		a1 = 11. / 3;
+		a2 = 1.;
+		a3 = 1. / 3;
+		a4 = 1. / 6;
+	}
+	return a0 * eta * pow(1 + z, a1) * pow(E / TeV, a2) * pow(L / 1e38, a3) * pow(nIGM / 0.1, a4);
 }
 
 double PlasmaInstability::coolingPowerE(double E, double z) const {
@@ -160,5 +198,5 @@ double PlasmaInstability::coolingPowerE(double E, double z) const {
 	double nIGM = densityIGM / pow(1 + z, 3);
 	double L = luminosityBeam;
 	E /= (1 + z);
-	return 1.3e-26 * pow(1 + z, -13 / 6) * pow(E / TeV, -2 / 3) * pow(L / 1e38, -1 / 3) * pow(nIGM / 0.1,  1 / 3) * (T / 1e4);
+	return 1.3e-26 * pow(1 + z, -13. / 6) * pow(E / TeV, -2. / 3) * pow(L / 1e38, -1. / 3) * pow(nIGM / 0.1,  1. / 3) * (T / 1e4);
 }
