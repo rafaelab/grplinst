@@ -16,7 +16,7 @@ They are modelled as a cooling term for electrons/positrons. Note that this is a
 
 
 
-## Installation Instruction
+## Installation procedure
 
 To install *grplinst*, you will need to have CRPropa 3 installed. 
 Go to https://github.com/CRPropa/CRPropa3/ and follow the instructions.
