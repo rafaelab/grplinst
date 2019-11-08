@@ -1,17 +1,13 @@
 from crpropa import *
 import grplinst as plinst
 
-# thinning is not available in the main CRPropa repository
-# remove this for compatibility
-thinning = 1. 
 
 EBL = IRB_Gilmore12
-z = 0.08
-nIGM = 1e-7 # cm-3
-L = 1e38 
-T = 1e5
+z = 0.14 # 1ES 0209+200
+nIGM = 1e-7 # cm^-3
+L = 1e38 # W
+T = 1e5 # K
 model = 'C'
-
 
 obs = Observer()
 obs.add(ObserverPoint())
@@ -21,12 +17,12 @@ output.set(output.WeightColumn, True)
 obs.onDetection(output)
 
 sim = ModuleList()
-sim.add(SimplePropagation(1e-5 * kpc, 10 * kpc))
+sim.add(SimplePropagation(1e-10 * kpc, 10 * kpc))
 sim.add(Redshift())
-sim.add(EMInverseComptonScattering(CMB, True, thinning))
-sim.add(EMInverseComptonScattering(EBL, True, thinning))
-sim.add(EMPairProduction(CMB, True, thinning))
-sim.add(EMPairProduction(EBL, True, thinning))
+sim.add(EMPairProduction(CMB, True))
+sim.add(EMPairProduction(EBL, True))
+sim.add(EMInverseComptonScattering(CMB, True))
+sim.add(EMInverseComptonScattering(EBL, True))
 sim.add(plinst.PlasmaInstability(nIGM, T, L, model))
 sim.add(MaximumTrajectoryLength(4000 * Mpc))
 sim.add(MinimumEnergy(1e9 * eV))
@@ -41,4 +37,4 @@ source.add(SourceDirection(Vector3d(-1, 0, 0)))
 
 
 sim.setShowProgress(True)
-sim.run(source, 1000, True)
+sim.run(source, 10000, True)
