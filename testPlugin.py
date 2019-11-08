@@ -1,10 +1,12 @@
 from crpropa import *
 import grplinst as plinst
 
-thinning = 1.
+# thinning is not available in the main CRPropa repository
+# remove this for compatibility
+thinning = 1. 
+
 EBL = IRB_Gilmore12
 z = 0.08
-
 nIGM = 1e-7 # cm-3
 L = 1e38 
 T = 1e5
