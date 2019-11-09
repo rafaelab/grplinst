@@ -47,7 +47,8 @@ Alternatively, this can be hard-coded in your python script.
 This program is provided 'as is', without warranties of any kind. 
 Please use your discernement to interpret the results obtained with it.
 
-
+## Acknowledgements
+We thank Michael Kachelries and Jacob Benestad for providing feedback that lead us to finding a few bugs. 
 
 
 
