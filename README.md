@@ -41,6 +41,7 @@ make
 Make sure to add the path where grplinst.py is created to your PYTHONPATH.
 Alternatively, this can be hard-coded in your python script.
 
+For consistency with CRPropa, the flag `-DCMAKE_CXX_FLAGS="-std=c++11"` may be required to force compilers to adopt C++11.
 
 
 ## Disclaimer
