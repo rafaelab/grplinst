@@ -1,8 +1,14 @@
+import sys
+
 from crpropa import *
+
+sys.path.append('build')
 import grplinst as plinst
 
 
-EBL = IRB_Gilmore12
+ebl = IRB_Gilmore12()
+cmb = CMB()
+
 z = 0.14 # 1ES 0209+200
 nIGM = 1e-7 # cm^-3
 L = 1e38 # W
@@ -19,10 +25,10 @@ obs.onDetection(output)
 sim = ModuleList()
 sim.add(SimplePropagation(1e-10 * kpc, 10 * kpc))
 sim.add(Redshift())
-sim.add(EMPairProduction(CMB, True))
-sim.add(EMPairProduction(EBL, True))
-sim.add(EMInverseComptonScattering(CMB, True))
-sim.add(EMInverseComptonScattering(EBL, True))
+sim.add(EMPairProduction(cmb, True))
+sim.add(EMPairProduction(ebl, True))
+sim.add(EMInverseComptonScattering(cmb, True))
+sim.add(EMInverseComptonScattering(ebl, True))
 sim.add(plinst.PlasmaInstability(nIGM, T, L, model))
 sim.add(MaximumTrajectoryLength(4000 * Mpc))
 sim.add(MinimumEnergy(1e9 * eV))
