@@ -1,6 +1,7 @@
 #ifndef GRPLINST_MEDIUM_H
 #define GRPLINST_MEDIUM_H
 
+#include <crpropa/Common.h>
 #include <crpropa/Units.h>
 #include <crpropa/Vector3.h>
 #include <crpropa/Grid.h>
@@ -17,6 +18,8 @@ class MediumTemperature : public crpropa::Referenced {
 	public:
 		MediumTemperature() {
 		}
+		~MediumTemperature() {
+		}
 		virtual double getValue(crpropa::Vector3d position) const = 0;
 		virtual double getValue(crpropa::Vector3d position, double redshift) const = 0;
 };
@@ -27,7 +30,10 @@ class MediumTemperature : public crpropa::Referenced {
  */
 class MediumDensity : public crpropa::Referenced {
 	public:
-		MediumDensity(){};
+		MediumDensity(){
+		}
+		~MediumDensity(){
+		}
 		virtual double getValue(crpropa::Vector3d position) const = 0;
 		virtual double getValue(crpropa::Vector3d position, double redshift) const = 0;
 };

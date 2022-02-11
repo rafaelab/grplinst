@@ -25,7 +25,7 @@ double HomogeneousMediumTemperature::getValue(crpropa::Vector3d position, double
 
 
 //////////////////
-HomogeneousMediumDensity::HomogeneousMediumDensity(double n) {
+HomogeneousMediumDensity::HomogeneousMediumDensity(double n) : MediumDensity() {
 	setDensity(n);
 }
 
@@ -42,7 +42,7 @@ double HomogeneousMediumDensity::getValue(crpropa::Vector3d position) const {
 }
 
 double HomogeneousMediumDensity::getValue(crpropa::Vector3d position, double redshift) const {
-	return density * pow(1 + redshift, 3);
+	return density * crpropa::pow_integer<3>(1 + redshift);
 }
 
 } // namespace grplinst
