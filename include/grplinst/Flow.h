@@ -3,6 +3,7 @@
 
 #include <crpropa/Units.h>
 #include <crpropa/Vector3.h>
+#include <crpropa/Common.h>
 #include <crpropa/Grid.h>
 #include <crpropa/Referenced.h>
 
@@ -14,26 +15,43 @@ namespace grplinst {
  @brief Abstract base class to define properties related to the emitting object.
  */
 class Flow : public crpropa::Referenced {
+	protected:
+		crpropa::Vector3d origin;
 	public:
-		Flow() {
-		}
-		virtual double getValue(crpropa::Vector3d position) const = 0;
-		virtual double getValue(crpropa::Vector3d position, double redshift) const = 0;
+		Flow(crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		~Flow();
+		void setOrigin(crpropa::Vector3d origin);
+		crpropa::Vector3d getOrigin() const;
+		virtual double getValue(crpropa::Vector3d position, double redshift = 0) const = 0;
 };
 
 /**
- @class HomogeneousFlow
+ @class FlowHomogeneous
  @brief Class to describe the  
  */
-class HomogeneousFlow : public Flow {
+class FlowHomogeneous : public Flow {
 	private:
 		double density;
 	public:
-		HomogeneousFlow(double density);
+		FlowHomogeneous(double density, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		~FlowHomogeneous();
 		void setDensity(double density);
 		double getDensity() const;
-		double getValue(crpropa::Vector3d position) const;
-		double getValue(crpropa::Vector3d position, double redshift) const;
+		double getValue(crpropa::Vector3d position, double redshift = 0) const;
+};
+
+class FlowJet1D : public Flow {
+	private:
+		double density;
+		std::vector<double> _d;
+		std::vector<double> _n;
+	public:
+		FlowJet1D(double density, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		~FlowJet1D();
+		void setDensity(double density);
+		double getDensity() const;
+		double getValue(crpropa::Vector3d position, double redshift = 0) const;
+		void initTable();
 };
 
 /**

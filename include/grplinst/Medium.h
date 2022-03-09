@@ -6,6 +6,8 @@
 #include <crpropa/Vector3.h>
 #include <crpropa/Grid.h>
 #include <crpropa/Referenced.h>
+#include <crpropa/ParticleId.h>
+#include <crpropa/ParticleMass.h>
 
 
 namespace grplinst {
@@ -16,12 +18,10 @@ namespace grplinst {
  */
 class MediumTemperature : public crpropa::Referenced {
 	public:
-		MediumTemperature() {
-		}
-		~MediumTemperature() {
-		}
-		virtual double getValue(crpropa::Vector3d position) const = 0;
-		virtual double getValue(crpropa::Vector3d position, double redshift) const = 0;
+		MediumTemperature();
+		~MediumTemperature();
+		virtual double getValue(crpropa::Vector3d position, double redshift = 0.) const = 0;
+		double getVelocity(int id, crpropa::Vector3d position, double redshift = 0) const;
 };
 
 /**
@@ -30,43 +30,40 @@ class MediumTemperature : public crpropa::Referenced {
  */
 class MediumDensity : public crpropa::Referenced {
 	public:
-		MediumDensity(){
-		}
-		~MediumDensity(){
-		}
-		virtual double getValue(crpropa::Vector3d position) const = 0;
-		virtual double getValue(crpropa::Vector3d position, double redshift) const = 0;
+		MediumDensity();
+		~MediumDensity();
+		virtual double getValue(crpropa::Vector3d position, double redshift = 0.) const = 0;
 };
 
 
 /**
- @class HomogeneousMediumTemperature
+ @class MediumTemperatureHomogeneous
  @brief Medium temperature is the same at all positions.
  */
-class HomogeneousMediumTemperature : public MediumTemperature {
+class MediumTemperatureHomogeneous : public MediumTemperature {
 	private:
 		double temperature;
 	public:
-		HomogeneousMediumTemperature(const double temperature);
+		MediumTemperatureHomogeneous(const double temperature);
+		~MediumTemperatureHomogeneous();
 		void setTemperature(double temperature);
 		double getTemperature() const;
-		double getValue(crpropa::Vector3d position) const;
-		double getValue(crpropa::Vector3d position, double redshift) const;
+		double getValue(crpropa::Vector3d position, double redshift = 0.) const;
 };
 
 /**
- @class HomogeneousMediumDensity
+ @class MediumDensityHomogeneous
  @brief Medium density is the same at all positions.
  */
-class HomogeneousMediumDensity : public MediumDensity {
+class MediumDensityHomogeneous : public MediumDensity {
 	private:
 		double density;
 	public:
-		HomogeneousMediumDensity(double density);
+		MediumDensityHomogeneous(double density);
+		~MediumDensityHomogeneous();
 		void setDensity(double density);
 		double getDensity() const; 
-		double getValue(crpropa::Vector3d position) const;
-		double getValue(crpropa::Vector3d position, double redshift) const;
+		double getValue(crpropa::Vector3d position, double redshift = 0.) const;
 };
 
 
