@@ -101,6 +101,19 @@
 %include "grplinst/PlasmaInstability.h"
 
 
+
+/* NumPy support */
+%{
+	#define SWIG_FILE_WITH_INIT
+%}
+%include "numpy.i"
+%init %{
+	import_array();
+%}
+
+
+
+
 /* Hide warnings */
 #pragma SWIG nowarn=312,325,361,389,401,508,509
 
