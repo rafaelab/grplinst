@@ -20,10 +20,20 @@ if(ENABLE_SWIG_BUILTIN)
   set(swigModeFlag "-builtin")
 endif(ENABLE_SWIG_BUILTIN)
 
+# NumPy
+execute_process(COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/python/checkNumpy.py" OUTPUT_VARIABLE numpyIncludePath)
+  if(numpyIncludePath)
+    MESSAGE(STATUS "Found NumPy headers in: " ${numpyIncludePath})
+    SET(CMAKE_SWIG_FLAGS -DWITHNUMPY ${CRP})
+    list(APPEND CRPROPA_SWIG_DEFINES -DWITHNUMPY)
+    include_directories(${numpyIncludePath})
+  else(numpyIncludePath)
+    MESSAGE(STATUS "NumPy not found.")
+  endif(numpyIncludePath)
+
 # get information on CRPropa
 execute_process(COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/python/findCRPropa.py" swig_interface OUTPUT_VARIABLE crpropaSwigPath)
 execute_process(COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/python/findCRPropa.py" install_prefix OUTPUT_VARIABLE crpropaInstallPrefix)
-
 
 find_path(CRPROPA_SWIG_INTERFACE_FILES ${crpropaSwigFile} HINTS share/crpropa share/crpropa/swig_interface python/ ${crpropaSwigPath})
 find_path(CRPROPA_INCLUDE_PATH CRPropa.h HINTS crpropa/ include/ include/crpropa ${crpropaInstallPrefix}/include/)
