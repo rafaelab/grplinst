@@ -63,6 +63,7 @@ add_library(${PLUGINNAME} MODULE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Medium.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Flow.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/PlasmaInstability.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Simulation.cc
   )
 target_link_libraries(${PLUGINNAME} ${CRPROPA_LIBRARY} ${PYTHON_LIBRARIES})
 set_target_properties(${PLUGINNAME} PROPERTIES PREFIX "")

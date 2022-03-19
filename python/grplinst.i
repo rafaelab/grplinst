@@ -31,6 +31,11 @@
 	}
 }
 
+%inline %{
+	class RangeError {};
+	// class StopIterator {};
+%}
+
 /* Exceptions for Python lists and iterators */
 #ifdef SWIG_PYTHON3
 %exception __next__ {
@@ -55,9 +60,12 @@
 	}
 };
 
+
 %{
-	#include <iostream>
+	#include <cmath>
+	#include <fstream>
 	#include <iomanip>
+	#include <iostream>
 	#include <vector>
 	#include "CRPropa.h"
 	using namespace crpropa;
@@ -68,11 +76,13 @@
 %ignore operator grplinst::MediumTemperature*;
 %ignore operator grplinst::Flow*;
 %ignore operator grplinst::PlasmaInstability*;
+// %ignore operator grplinst::Simulation*;
 
 %{
 	#include "grplinst/Flow.h"
 	#include "grplinst/Medium.h"
 	#include "grplinst/PlasmaInstability.h"
+	#include "grplinst/Simulation.h"
 %}
 
 /* import crpropa in wrapper */
@@ -85,20 +95,32 @@
 %implicitconv crpropa::ref_ptr<grplinst::MediumTemperature>;
 %implicitconv crpropa::ref_ptr<grplinst::Flow>;
 %implicitconv crpropa::ref_ptr<grplinst::PlasmaInstability>;
+%implicitconv crpropa::ref_ptr<grplinst::Scenario>;
+%implicitconv crpropa::ref_ptr<grplinst::EmissionGeometry>;
+%implicitconv crpropa::ref_ptr<grplinst::EmissionObservables>;
+%implicitconv crpropa::ref_ptr<grplinst::Simulation>;
 %template(MediumDensityRefPtr) crpropa::ref_ptr<grplinst::MediumDensity>;
 %template(MediumTemperatureRefPtr) crpropa::ref_ptr<grplinst::MediumTemperature>;
 %template(FlowRefPtr) crpropa::ref_ptr<grplinst::Flow>;
 %template(PlasmaInstabilityRefPtr) crpropa::ref_ptr<grplinst::PlasmaInstability>;
+%template(ScenarioRefPtr) crpropa::ref_ptr<grplinst::Scenario>;
+%template(EmissionGeometryRefPtr) crpropa::ref_ptr<grplinst::EmissionGeometry>;
+%template(SimulationVector) std::vector<crpropa::ref_ptr<grplinst::Simulation>>;
+%template(EmissionObservablesRefPtr) crpropa::ref_ptr<grplinst::EmissionObservables>;
+%template(SimulationRefPtr) crpropa::ref_ptr<grplinst::Simulation>;
 %feature("director") grplinst::MediumDensity;
 %feature("director") grplinst::MediumTemperature;
 %feature("director") grplinst::Flow;
 %feature("director") grplinst::PlasmaInstability;
+// %feature("director") grplinst::Simulation;
+// %feature("director") grplinst::EmissionObservables;
 
 
 /* include plugin parts to generate wrappers */
 %include "grplinst/Flow.h"
 %include "grplinst/Medium.h"
 %include "grplinst/PlasmaInstability.h"
+%include "grplinst/Simulation.h"
 
 
 
