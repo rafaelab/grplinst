@@ -76,10 +76,14 @@
 %ignore operator grplinst::MediumTemperature*;
 %ignore operator grplinst::Flow*;
 %ignore operator grplinst::PlasmaInstability*;
-// %ignore operator grplinst::Simulation*;
+%ignore operator grplinst::Simulation*;
+%ignore operator grplinst::Scenario*;
+%ignore operator grplinst::EmissionGeometry*;
 
 %{
+	#include "grplinst/Auxiliary.h"
 	#include "grplinst/Flow.h"
+	#include "grplinst/Geometry.h"
 	#include "grplinst/Medium.h"
 	#include "grplinst/PlasmaInstability.h"
 	#include "grplinst/Simulation.h"
@@ -105,22 +109,39 @@
 %template(PlasmaInstabilityRefPtr) crpropa::ref_ptr<grplinst::PlasmaInstability>;
 %template(ScenarioRefPtr) crpropa::ref_ptr<grplinst::Scenario>;
 %template(EmissionGeometryRefPtr) crpropa::ref_ptr<grplinst::EmissionGeometry>;
-%template(SimulationVector) std::vector<crpropa::ref_ptr<grplinst::Simulation>>;
 %template(EmissionObservablesRefPtr) crpropa::ref_ptr<grplinst::EmissionObservables>;
+%template(SimulationVector) std::vector<crpropa::ref_ptr<grplinst::Simulation>>;
 %template(SimulationRefPtr) crpropa::ref_ptr<grplinst::Simulation>;
 %feature("director") grplinst::MediumDensity;
 %feature("director") grplinst::MediumTemperature;
 %feature("director") grplinst::Flow;
 %feature("director") grplinst::PlasmaInstability;
+// %feature("director") grplinst::Scenario;
 // %feature("director") grplinst::Simulation;
+%feature("director") grplinst::EmissionGeometry;
 // %feature("director") grplinst::EmissionObservables;
 
 
+/* provides access to the concrete geometry from the abstract EmissionGeometry object */
+%inline %{
+	grplinst::Cone* convertToCone(grplinst::EmissionGeometry *geo) {
+		return dynamic_cast<grplinst::Cone*>(geo);
+	}
+
+	grplinst::Cone* convertToCone(crpropa::ref_ptr<grplinst::EmissionGeometry> geo) {
+		return dynamic_cast<grplinst::Cone*>(geo.get());
+	}
+%}
+
+
 /* include plugin parts to generate wrappers */
+%include "grplinst/Auxiliary.h"
 %include "grplinst/Flow.h"
+%include "grplinst/Geometry.h"
 %include "grplinst/Medium.h"
 %include "grplinst/PlasmaInstability.h"
 %include "grplinst/Simulation.h"
+
 
 
 
@@ -132,7 +153,8 @@
 %init %{
 	import_array();
 %}
-
+%template(vectorDouble) std::vector<double>;
+%template(vectorInt) std::vector<int>;
 
 
 

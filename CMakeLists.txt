@@ -60,8 +60,9 @@ include_directories(include ${CMAKE_CURRENT_BINARY_DIR}/include ${CRPROPA_INCLUD
 # build interface and source in one library
 add_library(${PLUGINNAME} MODULE 
   ${CMAKE_CURRENT_BINARY_DIR}/${PLUGINNAME}_wrap.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Medium.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Flow.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Geometry.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Medium.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/PlasmaInstability.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Simulation.cc
   )
