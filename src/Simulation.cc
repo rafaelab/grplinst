@@ -4,60 +4,16 @@
 namespace grplinst {
 
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-EmissionGeometry::EmissionGeometry() {
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-Cone::Cone(double angle, double height, crpropa::Vector3d axis) {
-	setAngle(angle);
-	setAxis(axis);
-	setHeight(height);
-	setRadius(computeRadius());
-}
-
-void Cone::setAngle(double a) {
-	angle = a;
-}
-
-void Cone::setHeight(double h) {
-	height = h;
-}
-
-void Cone::setRadius(double r) {
-	radius = r;
-}
-
-void Cone::setAxis(crpropa::Vector3d a) {
-	axis = a;
-}
-
-double Cone::computeRadius() const {
-	return tan(angle) * height;
-}
-
-double Cone::computeArea() const {
-	return M_PI * radius * (radius + sqrt(radius * radius + height * height));
-}
-
-double Cone::computeVolume() const {
-	return M_PI * radius * radius * height / 3.;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-Scenario::Scenario(double alpha, double Emax, double L, double dist, crpropa::ref_ptr<EmissionGeometry> geo, double alpha0, double z) {
+/***************************************************************************/
+/**/
+Scenario::Scenario(double alpha, double Emax, double L, crpropa::ref_ptr<EmissionGeometry> geo, double z, double alpha0, std::string cutoff) {
 	setSpectralIndex(alpha);
 	setSpectralIndexSimulation(alpha0);
 	setEnergyCutoff(Emax);
 	setLuminosity(L);
 	setSourceRedshift(z);
+	setCutoff(cutoff);
 	setGeometry(geo);
-	setDistance(dist);
 }
 
 void Scenario::setSpectralIndex(double s) {
@@ -80,12 +36,20 @@ void Scenario::setSourceRedshift(double z) {
 	redshift = z;
 }
 
-void Scenario::setDistance(double d) {
-	distance = d;
+void Scenario::setGeometry(crpropa::ref_ptr<EmissionGeometry> geo) {	
+	// std::cout << geometry.get()->getHeight() << std::endl;
+	// std::cout << c->getHeight();
+	// std::cout << typeid(c).name() << std::endl
+	geometry = geo;
 }
 
-void Scenario::setGeometry(crpropa::ref_ptr<EmissionGeometry> geo) {
-	geometry = geo;
+void Scenario::setCutoff(std::string c) {
+	if (c != "exp" || c != "sharp" || c != "expBroken" || c != "exp2" || c != "exp1") {
+		std::invalid_argument("Cutoff shape unknown. Use: exp (exp1), exp2, sharp, or expBroken.");
+	}
+	if (c == "exp")
+		c = "exp1";
+	cutoff = c;
 }
 
 double Scenario::getSpectralIndex() const {
@@ -102,10 +66,6 @@ double Scenario::getEnergyCutoff() const {
 
 double Scenario::getLuminosity() const {
 	return luminosity;
-}
-
-double Scenario::getDistance() const {
-	return distance;
 }
 
 double Scenario::getSourceRedshift() const {
@@ -136,6 +96,10 @@ double Scenario::getSourceLuminosityDistance() const {
 	return crpropa::redshift2LuminosityDistance(redshift);
 }
 
+std::string Scenario::getCutoff() const {
+	return cutoff;
+}
+
 crpropa::ref_ptr<EmissionGeometry> Scenario::getGeometry() const {
 	return geometry;
 }
@@ -144,9 +108,26 @@ double Scenario::computeVolume() const {
 	return geometry->computeVolume();
 }
 
+double Scenario::computeWeight(double energy0) const {
+	double w = pow(energy0, spectralIndexSimulation - spectralIndex);
+	if (cutoff == "exp") {
+		w *= exp(- energy0 / energyCutoff);
+	} else if (cutoff == "expBroken") {
+		if (energy0 > energyCutoff)
+			w *= exp(- energy0 / energyCutoff);
+	} else if (cutoff == "exp2") {
+		w *= exp(- crpropa::pow_integer<2>(energy0 / energyCutoff));
+	}
+	return w;
+}
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+// double Scenario::computeEffectiveLuminosity() const {
+// 	geo.
+// }
+
+
+/***************************************************************************/
+/**/
 EmissionObservables::EmissionObservables() {
 	setMeanLorentzFactor(0);
 	setMeanInverseLorentzFactor(0);
@@ -233,21 +214,39 @@ double EmissionObservables::getDensity() const {
 	return density;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-
+/***************************************************************************/
+/**/
 Simulation::Simulation() {
-	setFilename("");
 	scenarios.clear();
 	observables.clear();
+	setFilename("");
+	setDistance(0);
+	setMagneticField(0);
+	setCoherenceLength(0);
 }
 
-Simulation::Simulation(std::string fn) {
+Simulation::Simulation(std::string fn, double dist, double B, double LB) {
+	scenarios.clear();
+	observables.clear();
 	setFilename(fn);
+	setDistance(dist);
+	setMagneticField(B);
+	setCoherenceLength(LB);
 }
 
 Simulation::~Simulation() {
+}
+
+void Simulation::setDistance(double d) {
+	distance = d;
+}
+
+void Simulation::setMagneticField(double B) {
+	magneticField = B;
+}
+
+void Simulation::setCoherenceLength(double L) {
+	coherenceLength = L;
 }
 
 void Simulation::setFilename(std::string fn) {
@@ -255,7 +254,27 @@ void Simulation::setFilename(std::string fn) {
 }
 
 void Simulation::addScenario(crpropa::ref_ptr<Scenario> scenario) {
-	scenarios.push_back(scenario);
+	crpropa::ref_ptr<EmissionGeometry> geom = nullptr;
+	
+	if (scenario->getGeometry()->getShapeName() == "cone") {
+		Cone *c = static_cast<Cone*>(crpropa::get_pointer(scenario->getGeometry()));
+		double angle = c->getAngle();
+		crpropa::Vector3d axis = c->getAxis();
+		c->setHeight(distance);
+		// geom = c;
+		geom = new Cone(angle, distance, axis);
+	} else {
+		std::runtime_error("Distance correction for geometry only implemented for cone.");
+	}
+
+	double a = scenario->getSpectralIndex();
+	double a0 = scenario->getSpectralIndexSimulation();
+	double Emax = scenario->getEnergyCutoff();
+	double L = scenario->getLuminosity();
+	double z = scenario->getSourceRedshift();
+	std::string cutoff = scenario->getCutoff();
+
+	scenarios.push_back(new Scenario(a, Emax, L, geom, z, a0, cutoff));
 }
 
 void Simulation::process() {
@@ -270,20 +289,8 @@ void Simulation::process() {
 			std::runtime_error("Simulation file not good: " + filename + ".");
 	}
 
-	std::vector<double> weight;
-	std::vector<double> a;
-	std::vector<double> a0;
-	std::vector<double> Emax;
-	std::vector<double> L;
-	std::vector<crpropa::ref_ptr<EmissionGeometry>> geo;
 	for (size_t k = 0; k < scenarios.size(); k++) {
 		observables.push_back(new EmissionObservables());
-		weight.push_back(0);
-		a.push_back(scenarios[k]->getSpectralIndex());
-		a0.push_back(scenarios[k]->getSpectralIndexSimulation());
-		Emax.push_back(scenarios[k]->getEnergyCutoff());
-		L.push_back(scenarios[k]->getLuminosity());
-		geo.push_back(scenarios[k]->getGeometry());
 	}
 
 	// read file only once
@@ -305,29 +312,25 @@ void Simulation::process() {
 		e *= crpropa::eV;
 		e0 *= crpropa::eV;
 		
-		// consider only electrons
-		if (fabs(id) != 11)
-			continue;
 
 		for (size_t k = 0; k < scenarios.size(); k++) {
 			// reweight spectrum
-			weight[k] = w0 * pow(e0, a0[k] - a[k]);
-			if (e0 > Emax[k])
-				weight[k] *= exp(- e0 / Emax[k]);
+			double w = w0 * scenarios[k]->computeWeight(e0);
+			if (fabs(id) == 11) { // only electrons
+				// jet geometry
+				// w *=
 
-			// jet geometry
-			// w *=
+				// compute gamma from angles?
+				double gamma = e / (crpropa::mass_electron * crpropa::c_light * crpropa::c_light);
+				// double theta = p.getAngleTo(p0);
+				// double gamma = 
 
-			// compute gamma from angles?
-			double gamma = e / (crpropa::mass_electron * crpropa::c_light * crpropa::c_light);
-			// double theta = p.getAngleTo(p0);
-			// double gamma = 
-
-			observables[k]->incrementWeightSum(weight[k]);
-			observables[k]->incrementEnergyTotal(weight[k] * e);
-			observables[k]->incrementEnergyTotal0(weight[k] * e0);
-			observables[k]->incrementMeanLorentzFactor(weight[k] * gamma);
-			observables[k]->incrementMeanInverseLorentzFactor(weight[k] / gamma);
+				observables[k]->incrementWeightSum(w);
+				observables[k]->incrementEnergyTotal0(w * e0);
+				observables[k]->incrementEnergyTotal(w * e);
+				observables[k]->incrementMeanLorentzFactor(w * gamma);
+				observables[k]->incrementMeanInverseLorentzFactor(w / gamma);
+			}
 		}
 	}
 	infile.close();
@@ -342,7 +345,7 @@ void Simulation::process() {
 		double V = scenarios[k]->computeVolume();
 
 		double norm = L / Etot0;
-		double Npair = wsum * norm * Etot / (lf * crpropa::mass_electron * crpropa::pow_integer<2>(crpropa::c_light)) / 2.;
+		double Npair = norm * (Etot * wsum) / (lf * crpropa::mass_electron * crpropa::pow_integer<2>(crpropa::c_light) / wsum) / 2.;
 		double npair = Npair / V;
 		observables[k]->setMeanLorentzFactor(lf / wsum);
 		observables[k]->setMeanInverseLorentzFactor(ilf / wsum);
@@ -362,15 +365,30 @@ std::string Simulation::getFilename() const {
 	return filename;
 }
 
+double Simulation::getDistance() const {
+	return distance;
+}
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+double Simulation::getMagneticField() const {
+	return magneticField;
+}
+
+double Simulation::getCoherenceLength() const {
+	return coherenceLength;
+}
+
+/***************************************************************************/
+/**/
 void saveEmissionProfile(std::vector<crpropa::ref_ptr<Simulation>> simulations, std::string filename) {
 	// check if simulations are of same size
 	size_t Nscenarios = simulations[0]->getScenarios().size();
 	for (size_t k = 1; k < simulations.size(); k++) {
-		if (simulations[k]->getScenarios().size() != Nscenarios)
-			std::length_error("To create the emission profiles, the scenarios should be  the same.");
+		if (simulations[k]->getScenarios().size() != Nscenarios) {
+			std::length_error("To create the emission profiles, the scenarios should be the same.");
+		}
+		if (simulations[k]->getMagneticField() != simulations[0]->getMagneticField() || simulations[k]->getCoherenceLength() != simulations[0]->getCoherenceLength()) {
+			std::invalid_argument("The vector of simulations provided should be for the same magnetic field.");
+		}
 	}
 	size_t Nsim = simulations.size();
 
@@ -381,28 +399,31 @@ void saveEmissionProfile(std::vector<crpropa::ref_ptr<Simulation>> simulations, 
 
 	for (size_t j = 0; j < Nscenarios; j++) { // loop over scenarios
 		crpropa::ref_ptr<Scenario> scenario = simulations[0]->getScenarios()[j];
+		
 		// output file
-		std::stringstream suffixStr;
-		suffixStr << std::fixed << std::setprecision(simulations.size() % 10 + 1) << j;
-		std::string outputFile = fn + "-" + suffixStr.str() + extension;
+		std::string suffixStr = formatString("z_%4.3f-B_%1.0eG-LB_%1.0ekpc-L_%1.0eW-alpha_%2.1f-Emax_%2.1eeV", scenario->getSourceRedshift(), simulations[0]->getMagneticField() / crpropa::gauss, simulations[0]->getCoherenceLength() / crpropa::kpc, scenario->getLuminosity(), scenario->getSpectralIndex(), scenario->getEnergyCutoff() / crpropa::eV);
+		std::string outputFile = fn + "-" + suffixStr + "." + extension;
 		std::ofstream file;
 		file.open(outputFile, std::ios::out);
 		file << "# D [m]	n_e [1/m^3] 	<gamma> 	<1/gamma>\n";
 		file.setf(std::ios::showpoint);
 		file.setf(std::ios::scientific);
 		file.width(8);
+
 		for (size_t k = 0; k < simulations.size(); k++) { // loop over simulations
 			crpropa::ref_ptr<Simulation> sim = simulations[k];
 			crpropa::ref_ptr<EmissionObservables> observables = sim->getEmissionObservables()[j];
-			double D = scenario->getDistance();
+			double D = sim->getDistance();
 			double n = observables->getDensity();
 			double lf = observables->getMeanLorentzFactor();
 			double ilf = observables->getMeanInverseLorentzFactor();
-			file << D << "\t" << n << "\t" << lf << "\t" << ilf << "\n";
+			file << D << "\t" << n << "\t" << lf << "\t" << ilf << '\n';
 		}
 		file.close();
 	}
 }
+
+
 
 
 } // namespace grplinst
