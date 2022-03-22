@@ -1,12 +1,19 @@
 #ifndef GRPLINST_FLOW_H
 #define GRPLINST_FLOW_H
 
-#include <crpropa/Units.h>
-#include <crpropa/Vector3.h>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+
+#include <crpropa/Candidate.h>
 #include <crpropa/Common.h>
+#include <crpropa/Cosmology.h>
 #include <crpropa/Grid.h>
 #include <crpropa/Referenced.h>
-
+#include <crpropa/Units.h>
+#include <crpropa/Vector3.h>
 
 namespace grplinst {
 
@@ -20,9 +27,11 @@ class Flow : public crpropa::Referenced {
 	public:
 		Flow(crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
 		~Flow();
-		void setOrigin(crpropa::Vector3d origin);
+		void setOrigin(const crpropa::Vector3d &origin);
 		crpropa::Vector3d getOrigin() const;
-		virtual double getValue(crpropa::Vector3d position, double redshift = 0) const = 0;
+		virtual double getDensity(const crpropa::Vector3d &position, double redshift = 0) const = 0;
+		virtual double getMeanLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
+		virtual double getMeanInverseLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
 };
 
 /**
@@ -34,25 +43,64 @@ class FlowHomogeneous : public Flow {
 		double density;
 	public:
 		FlowHomogeneous(double density, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		FlowHomogeneous();
 		~FlowHomogeneous();
-		void setDensity(double density);
-		double getDensity() const;
-		double getValue(crpropa::Vector3d position, double redshift = 0) const;
+		void setTotalDensity(double density);
+		double getTotalDensity() const;
+		double getDensity(const crpropa::Vector3d &position, double redshift = 0) const;
+		double getMeanLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getMeanInverseLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const;
 };
 
+
+/**
+ */
 class FlowJet1D : public Flow {
-	private:
-		double density;
-		std::vector<double> _d;
-		std::vector<double> _n;
+	friend class FlowJet1DMahmoud;
+	// friend class FlowJetSimulation;
+	protected:
+		double densityNormalisation;
+		std::vector<double> distance;
+		std::vector<double> densityProfile;
+		std::vector<double> meanLorentzFactor;
+		std::vector<double> meanInverseLorentzFactor;
 	public:
-		FlowJet1D(double density, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		FlowJet1D(const std::vector<double> &distances, const std::vector<double> &beamDensity, const std::vector<double> &lorentzFactor, const std::vector<double> &inverseLorentzFactor, double densityNorm = 1, crpropa::Vector3d centre = crpropa::Vector3d(0, 0, 0));
+		FlowJet1D(const std::string &filename, double densityNormalisation = 1, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		FlowJet1D();
 		~FlowJet1D();
-		void setDensity(double density);
-		double getDensity() const;
-		double getValue(crpropa::Vector3d position, double redshift = 0) const;
-		void initTable();
+		void setDensityNormalisation(double densityNorm);
+		void setDensityProfile(const std::vector<double> &density);
+		void setDistanceProfile(const std::vector<double> &distance);
+		void setLorentzFactorProfile(const std::vector<double> &lorentzFactor);
+		void setInverseLorentzFactorProfile(const std::vector<double> &inverseLorentzFactor);
+		double getDensityNormalisation() const;
+		std::vector<double> getDistanceProfile() const;
+		std::vector<double> getDensityProfile() const;
+		std::vector<double> getLorentzFactorProfile() const;
+		std::vector<double> getInverseLorentzFactorProfile() const;
+		double getDensity(const crpropa::Vector3d &position, double redshift = 0) const;
+		double getMeanLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getMeanInverseLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const;
 };
+
+
+/**
+ */
+class FlowJet1DMahmoud : public FlowJet1D {
+	public:
+		FlowJet1DMahmoud(double densityNormalisation = 1, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		~FlowJet1DMahmoud();
+};
+
+
+
+/**
+ */
+// void analyseSimulation(std::string filename, double cutoffEnergy, double spectralIndex, double luminosity, double spectralIndexSimulation = 1);
+
+
+
 
 /**
 Converts a given density to luminosity and vice-versa.
