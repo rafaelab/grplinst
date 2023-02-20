@@ -1,27 +1,27 @@
 #include "grplinst.h"
 
 
-using namespace crpropa;
 
-PlasmaInstability::PlasmaInstability(double nIGM, double temperature, double lumBeam, char model) : Module() {
-
+PlasmaInstability::PlasmaInstability(double nIGM, double temperature, double lumBeam, char model) : crpropa::Module() {
 	setIGMDensity(nIGM);
 	setTemperature(temperature);
 	setBeamLuminosity(lumBeam);
 	setModel(model);
 	initTables();
-	setDescription("PlasmaInstability::PlasmaInstability");
+	setDescription("PlasmaInstability");
 }
 
 void PlasmaInstability::initTables() {
-	
 	// Initiate tables for Miniati and Elyv model
-	double d_[] = {-0.05, 0.14, 0.35, 0.59, 0.79, 0.96, 1.17, 1.40, 1.57, 1.77, 1.99, 2.20, 2.41, 2.60, 2.80, 3.00};
-	double w_[] = { 3.28, 3.46, 3.14, 3.08, 3.05, 3.00, 2.84, 2.56, 2.40, 2.55, 2.36, 2.08, 1.73, 1.55, 1.05, 0.75};
-	std::vector<double> D (d_, d_ + sizeof(d_) / sizeof(double));
-	std::vector<double> W (w_, w_ + sizeof(w_) / sizeof(double));
+	// double d_[] = {-0.05, 0.14, 0.35, 0.59, 0.79, 0.96, 1.17, 1.40, 1.57, 1.77, 1.99, 2.20, 2.41, 2.60, 2.80, 3.00};
+	// double w_[] = { 3.28, 3.46, 3.14, 3.08, 3.05, 3.00, 2.84, 2.56, 2.40, 2.55, 2.36, 2.08, 1.73, 1.55, 1.05, 0.75};
+	// std::vector<double> D (d_, d_ + sizeof(d_) / sizeof(double));
+	// std::vector<double> W (w_, w_ + sizeof(w_) / sizeof(double));
+	std::vector<double> D = {-0.05, 0.14, 0.35, 0.59, 0.79, 0.96, 1.17, 1.40, 1.57, 1.77, 1.99, 2.20, 2.41, 2.60, 2.80, 3.00};
+	std::vector<double> W = { 3.28, 3.46, 3.14, 3.08, 3.05, 3.00, 2.84, 2.56, 2.40, 2.55, 2.36, 2.08, 1.73, 1.55, 1.05, 0.75};
 	_d = D;
 	_w = W;
+	
 }
 
 void PlasmaInstability::setIGMDensity(double rho) {
@@ -50,8 +50,23 @@ void PlasmaInstability::setModel(char model) {
 	plasmaInstabilityModel = model;
 }
 
-void PlasmaInstability::process(Candidate *candidate) const {
+double PlasmaInstability::getIGMDensity() const {
+	return densityIGM;
+}
 
+double PlasmaInstability::getBeamLuminosity() const {
+	return luminosityBeam;
+}
+
+double PlasmaInstability::getTemperature() const {
+	return temperatureIGM;
+}
+
+char PlasmaInstability::getModel() const {
+	return plasmaInstabilityModel;
+}
+
+void PlasmaInstability::process(crpropa::Candidate *candidate) const {
 	int id = candidate->current.getId();
 
 	// only works for electrons and positrons
@@ -71,7 +86,6 @@ void PlasmaInstability::process(Candidate *candidate) const {
 }
 
 double PlasmaInstability::coolingPower(double E, double z) const {
-
 	double dEdx = 0;
 	switch(plasmaInstabilityModel) {
 		case 'a':
@@ -101,7 +115,6 @@ double PlasmaInstability::coolingPower(double E, double z) const {
 }
 
 double PlasmaInstability::coolingPowerA(double E, double z) const {
-
 	E /= (1 + z);
 	double eta = 1.;
 	double Ethr = 8.7e-6 * pow(1 + z, -13. / 6) * pow(luminosityBeam / 1e38, -1. / 3) * pow(densityIGM / 0.1, 1. / 3);
@@ -120,19 +133,17 @@ double PlasmaInstability::coolingPowerA(double E, double z) const {
 		a3 = 1. / 3;
 		a4 = 1. / 6;
 	}
-	return a0 * eta * pow(E / TeV, a2) * pow(luminosityBeam / 1e38, a3) * pow(densityIGM / 0.1, a4);
+	return a0 * eta * pow(E / crpropa::TeV, a2) * pow(luminosityBeam / 1e38, a3) * pow(densityIGM / 0.1, a4);
 }
 
-double PlasmaInstability::coolingPowerB(double E, double z) const {
-	
+double PlasmaInstability::coolingPowerB(double E, double z) const {	
 	E /= (1 + z);
-	double d0 = log10(redshift2LightTravelDistance(z) / Mpc); // co-moving?
-	double w = pow(10, interpolate(d0, _d, _w));
-	return 1.4e-29 * pow(1 + z, 2) * pow(E / TeV, 2) / w;
+	double d0 = log10(crpropa::redshift2LightTravelDistance(z) / crpropa::Mpc); // co-moving?
+	double w = pow(10, crpropa::interpolate(d0, _d, _w));
+	return 1.4e-29 * pow(1 + z, 2) * pow(E / crpropa::TeV, 2) / w;
 }
 
 double PlasmaInstability::coolingPowerC(double E, double z) const {
-
 	E /= (1 + z);
 	double eta = 1.;
 	double Ethr = 7.9e-8 * pow(1 + z, -9. / 4) / sqrt(luminosityBeam / 1e38) * pow(densityIGM / 0.1, 0.5) * pow(temperatureIGM / 1e4, 1.);
@@ -154,11 +165,10 @@ double PlasmaInstability::coolingPowerC(double E, double z) const {
 		a4 = 1. / 6.;
 		b = 1. / F;
 	}
-	return a0 * eta * pow(1 + z, a1) * pow(E / TeV, a2) * pow(luminosityBeam / 1e38, a3) * pow(densityIGM / 0.1, a4) * b;
+	return a0 * eta * pow(1 + z, a1) * pow(E / crpropa::TeV, a2) * pow(luminosityBeam / 1e38, a3) * pow(densityIGM / 0.1, a4) * b;
 }
 
 double PlasmaInstability::coolingPowerD(double E, double z) const {
-
 	E /= (1 + z);
 	double eta = 1.; // for now fixed; should add a function to play with it.
 	double Ethr = 6.9e-6 * pow(1 + z, -13. / 16) * pow(luminosityBeam / 1e38, -1. / 3) / sqrt(densityIGM / 0.1);
@@ -177,12 +187,53 @@ double PlasmaInstability::coolingPowerD(double E, double z) const {
 		a3 = 1. / 3;
 		a4 = 1. / 6;
 	}
-	return a0 * eta * pow(1 + z, a1) * pow(E / TeV, a2) * pow(luminosityBeam / 1e38, a3) * pow(densityIGM / 0.1, a4);
+	return a0 * eta * pow(1 + z, a1) * pow(E / crpropa::TeV, a2) * pow(luminosityBeam / 1e38, a3) * pow(densityIGM / 0.1, a4);
 }
 
 double PlasmaInstability::coolingPowerE(double E, double z) const {
-
 	E /= (1 + z);
-	return 2.7e-20 * pow(0.5 + z / 2., 19. / 6) * E * pow(E / TeV, -1.) * pow(luminosityBeam / 1e38, 1. / 3) * pow(densityIGM / 0.1,  -1. / 3) * (temperatureIGM / 1e4);
+	return 2.7e-20 * pow(0.5 + z / 2., 19. / 6) * E * pow(E / crpropa::TeV, -1.) * pow(luminosityBeam / 1e38, 1. / 3) * pow(densityIGM / 0.1,  -1. / 3) * (temperatureIGM / 1e4);
 
+}
+
+std::string PlasmaInstability::getModelReference() const {
+	std::stringstream s;
+	switch(plasmaInstabilityModel) {
+		case 'a':
+		case 'A':
+			s << "Broderick, Chang, Pfrommer. Astrophys. J. 752 (2012) 22. arXiv:1106.5494";
+			break;
+		case 'b':
+		case 'B':
+			s << "Miniati & Elyiv. Astrophys. J. 770 (2013) 54. arXiv:1208.1761";
+			break;
+		case 'c':
+		case 'C':
+			s << "Schlickeiser, Ibscher, Supsar. Astrophys. J. 758 (2012) 102.";
+			break;
+		case 'd':
+		case 'D':
+			s << "Sironi, Giannios. Astrophys. J. 787 (2014) 49. arXiv:1312.4538";
+			break;
+		case 'e':
+		case 'E':
+			s << "Vafin, Rafighi, Pohl, Niemiec. Astrophys. J. 857 (2018) 43. arXiv:1803.02990";
+			break;
+		default:
+			break;
+			// throw std::invalid_argument("Unknown plasma instability model \n.");	
+	}
+
+	return s.str();
+}
+
+std::string PlasmaInstability::getDescription() const {
+	std::stringstream s;
+	s << "PlasmaInstability";
+	s << "  density IGM: " << getIGMDensity() << " / m^3\n";
+	s << "  temperature: " << getTemperature() << " K\n";
+	s << "  beam luminosity: " << getBeamLuminosity() << " J/s\n";
+	s << "  model: " << getModel() << " (" << getModelReference() << ")\n";
+
+	return s.str();
 }
