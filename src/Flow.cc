@@ -13,7 +13,7 @@ Flow::Flow(crpropa::Vector3d origin) {
 Flow::~Flow() {
 }
 
-void Flow::setOrigin(const crpropa::Vector3d &centre) {
+void Flow::setOrigin(const crpropa::Vector3d& centre) {
 	origin = centre;
 }
 
@@ -43,15 +43,15 @@ double FlowHomogeneous::getTotalDensity() const {
 	return density;
 }
 
-double FlowHomogeneous::getDensity(const crpropa::Vector3d &position, double redshift) const {
+double FlowHomogeneous::getDensity(const crpropa::Vector3d& position, double redshift) const {
 	return density * crpropa::pow_integer<3>(1 + redshift);
 }
 
-double FlowHomogeneous::getMeanLorentzFactor(const crpropa::Vector3d &position, double redshift, double lorentzFactorParticle) const {
+double FlowHomogeneous::getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
 	return lorentzFactorParticle * (1 + redshift);
 }
 
-double FlowHomogeneous::getMeanInverseLorentzFactor(const crpropa::Vector3d &position, double redshift, double lorentzFactorParticle) const {
+double FlowHomogeneous::getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
 	return 1. / lorentzFactorParticle / (1 + redshift);
 }
 
@@ -154,17 +154,17 @@ std::vector<double> FlowJet1D::getInverseLorentzFactorProfile() const {
 	return meanInverseLorentzFactor;
 }
 
-double FlowJet1D::getDensity(const crpropa::Vector3d &position, double redshift) const {
+double FlowJet1D::getDensity(const crpropa::Vector3d& position, double redshift) const {
 	double n = crpropa::interpolate((position - origin).getR(), distance, densityProfile);
 	return n * crpropa::pow_integer<3>(1 + redshift);
 }
 
-double FlowJet1D::getMeanLorentzFactor(const crpropa::Vector3d &position, double redshift, double lorentzFactorParticle) const {
+double FlowJet1D::getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
 	double lf = crpropa::interpolate((position - origin).getR(), distance, meanLorentzFactor);
 	return lf * (1 + redshift);
 }
 
-double FlowJet1D::getMeanInverseLorentzFactor(const crpropa::Vector3d &position, double redshift, double lorentzFactorParticle) const {
+double FlowJet1D::getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
 	double ilf = crpropa::interpolate((position - origin).getR(), distance, meanInverseLorentzFactor);
 	return ilf / (1 + redshift);
 }

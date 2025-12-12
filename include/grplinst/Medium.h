@@ -20,8 +20,8 @@ class MediumTemperature : public crpropa::Referenced {
 	public:
 		MediumTemperature();
 		~MediumTemperature();
-		double getVelocity(int id, const crpropa::Vector3d &position, double redshift = 0) const;
-		virtual double getTemperature(const crpropa::Vector3d &position, double redshift = 0.) const = 0;
+		double getVelocity(int id, const crpropa::Vector3d& position, double redshift = 0) const;
+		virtual double getTemperature(const crpropa::Vector3d& position, double redshift = 0.) const = 0;
 };
 
 /**
@@ -32,7 +32,7 @@ class MediumDensity : public crpropa::Referenced {
 	public:
 		MediumDensity();
 		~MediumDensity();
-		virtual double getDensity(const crpropa::Vector3d &position, double redshift = 0.) const = 0;
+		virtual double getDensity(const crpropa::Vector3d& position, double redshift = 0.) const = 0;
 };
 
 
@@ -46,7 +46,7 @@ class MediumTemperatureHomogeneous : public MediumTemperature {
 	public:
 		MediumTemperatureHomogeneous(double temperature);
 		~MediumTemperatureHomogeneous();
-		double getTemperature(const crpropa::Vector3d &position, double redshift = 0.) const;
+		double getTemperature(const crpropa::Vector3d& position, double redshift = 0.) const;
 };
 
 /**
@@ -59,7 +59,7 @@ class MediumDensityHomogeneous : public MediumDensity {
 	public:
 		MediumDensityHomogeneous(double density);
 		~MediumDensityHomogeneous();
-		double getDensity(const crpropa::Vector3d &position, double redshift = 0.) const;
+		double getDensity(const crpropa::Vector3d& position, double redshift = 0.) const;
 };
 
 

@@ -18,8 +18,8 @@
 namespace grplinst {
 
 /**
- @class Beam
- @brief Abstract base class to define properties related to the emitting object.
+	@class Beam
+	@brief Abstract base class to define properties related to the emitting object.
  */
 class Flow : public crpropa::Referenced {
 	protected:
@@ -27,11 +27,11 @@ class Flow : public crpropa::Referenced {
 	public:
 		Flow(crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
 		~Flow();
-		void setOrigin(const crpropa::Vector3d &origin);
+		void setOrigin(const crpropa::Vector3d& origin);
 		crpropa::Vector3d getOrigin() const;
-		virtual double getDensity(const crpropa::Vector3d &position, double redshift = 0) const = 0;
-		virtual double getMeanLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
-		virtual double getMeanInverseLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
+		virtual double getDensity(const crpropa::Vector3d& position, double redshift = 0) const = 0;
+		virtual double getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
+		virtual double getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
 };
 
 /**
@@ -47,9 +47,9 @@ class FlowHomogeneous : public Flow {
 		~FlowHomogeneous();
 		void setTotalDensity(double density);
 		double getTotalDensity() const;
-		double getDensity(const crpropa::Vector3d &position, double redshift = 0) const;
-		double getMeanLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const;
-		double getMeanInverseLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getDensity(const crpropa::Vector3d& position, double redshift = 0) const;
+		double getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 };
 
 
@@ -79,9 +79,9 @@ class FlowJet1D : public Flow {
 		std::vector<double> getDensityProfile() const;
 		std::vector<double> getLorentzFactorProfile() const;
 		std::vector<double> getInverseLorentzFactorProfile() const;
-		double getDensity(const crpropa::Vector3d &position, double redshift = 0) const;
-		double getMeanLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const;
-		double getMeanInverseLorentzFactor(const crpropa::Vector3d &position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getDensity(const crpropa::Vector3d& position, double redshift = 0) const;
+		double getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 };
 
 

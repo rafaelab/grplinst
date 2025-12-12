@@ -45,7 +45,7 @@ crpropa::ref_ptr<MediumTemperature> PlasmaInstability::getMediumTemperature() co
 	return mediumTemperature;
 }
 
-void PlasmaInstability::process(crpropa::Candidate *candidate) const {
+void PlasmaInstability::process(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return;
@@ -79,7 +79,7 @@ PlasmaInstabilityBroderick2012C::PlasmaInstabilityBroderick2012C(crpropa::ref_pt
 	setDescription("PlasmaInstability::PlasmaInstabilityBroderick2012C");
 }
 
-double PlasmaInstabilityBroderick2012::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityBroderick2012::energyLoss(crpropa::Candidate* candidate) const {
 	
 	double z = candidate->getRedshift();
 	double E = candidate->current.getEnergy(); // multiply by (1 + z) for E(z)
@@ -112,7 +112,7 @@ double PlasmaInstabilityBroderick2012::energyLoss(crpropa::Candidate *candidate)
 }
 
 
-double PlasmaInstabilityBroderick2012B::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityBroderick2012B::energyLoss(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return 0;
@@ -133,7 +133,7 @@ double PlasmaInstabilityBroderick2012B::energyLoss(crpropa::Candidate *candidate
 	return E * tau_1 / crpropa::c_light;
 }
 
-double PlasmaInstabilityBroderick2012C::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityBroderick2012C::energyLoss(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return 0;
@@ -169,7 +169,7 @@ PlasmaInstabilityVafin2018C::PlasmaInstabilityVafin2018C(crpropa::ref_ptr<Flow> 
 	setDescription("PlasmaInstability::PlasmaInstabilityVafin2018C");
 }
 
-double PlasmaInstabilityVafin2018::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityVafin2018::energyLoss(crpropa::Candidate* candidate) const {
 	
 	double z = candidate->getRedshift();
 	double E = candidate->current.getEnergy(); // multiply by (1 + z) for E(z)
@@ -184,7 +184,7 @@ double PlasmaInstabilityVafin2018::energyLoss(crpropa::Candidate *candidate) con
 	return 2.7e-20 * pow(0.5 + z / 2., 19. / 6) * E * pow(E / crpropa::TeV, -1.) * pow(L / 1e38, 1. / 3) * pow(nMedium / 0.1,  -1. / 3) * (T / 1e4);
 }
 
-double PlasmaInstabilityVafin2018B::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityVafin2018B::energyLoss(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return 0;
@@ -213,7 +213,7 @@ double PlasmaInstabilityVafin2018B::energyLoss(crpropa::Candidate *candidate) co
 	return E * tau_1 / crpropa::c_light;
 }
 
-double PlasmaInstabilityVafin2018C::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityVafin2018C::energyLoss(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return 0;
@@ -255,7 +255,7 @@ PlasmaInstabilitySchlickeiser2012C::PlasmaInstabilitySchlickeiser2012C(crpropa::
 	setDescription("PlasmaInstability::PlasmaInstabilitySchlickeiser2012C");
 }
 
-double PlasmaInstabilitySchlickeiser2012::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilitySchlickeiser2012::energyLoss(crpropa::Candidate* candidate) const {
 	
 	double z = candidate->getRedshift();
 	double E = candidate->current.getEnergy(); // multiply by (1 + z) for E(z)
@@ -291,7 +291,7 @@ double PlasmaInstabilitySchlickeiser2012::energyLoss(crpropa::Candidate *candida
 	return a0 * eta * pow(1 + z, a1) * pow(E / crpropa::TeV, a2) * pow(L / 1e38, a3) * pow(nMedium / 0.1, a4) * b;
 }
 
-double PlasmaInstabilitySchlickeiser2012B::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilitySchlickeiser2012B::energyLoss(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return 0;
@@ -322,7 +322,7 @@ double PlasmaInstabilitySchlickeiser2012B::energyLoss(crpropa::Candidate *candid
 	return E * tau_1 / crpropa::c_light;
 }
 
-double PlasmaInstabilitySchlickeiser2012C::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilitySchlickeiser2012C::energyLoss(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return 0;
@@ -370,7 +370,7 @@ void PlasmaInstabilityMiniati2013::initTable() {
 	_w = W;
 }
 
-double PlasmaInstabilityMiniati2013::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityMiniati2013::energyLoss(crpropa::Candidate* candidate) const {
 	
 	double z = candidate->getRedshift();
 	double E = candidate->current.getEnergy(); // multiply by (1 + z) for E(z)
@@ -392,7 +392,7 @@ double PlasmaInstabilityMiniati2013::energyLoss(crpropa::Candidate *candidate) c
 	return 1.4e-29 * crpropa::pow_integer<2>(1 + z) * crpropa::pow_integer<2>(E / crpropa::TeV) / w;
 }
 
-double PlasmaInstabilityMiniati2013B::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityMiniati2013B::energyLoss(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return 0;
@@ -428,7 +428,7 @@ double PlasmaInstabilityMiniati2013B::energyLoss(crpropa::Candidate *candidate) 
 	return E / tau / crpropa::c_light;
 }
 
-double PlasmaInstabilityMiniati2013C::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilityMiniati2013C::energyLoss(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
 		return 0;
@@ -462,7 +462,7 @@ PlasmaInstabilitySironi2014::PlasmaInstabilitySironi2014(crpropa::ref_ptr<Flow> 
 	setDescription("PlasmaInstability::PlasmaInstabilitySironi2014");
 }
 
-double PlasmaInstabilitySironi2014::energyLoss(crpropa::Candidate *candidate) const {
+double PlasmaInstabilitySironi2014::energyLoss(crpropa::Candidate* candidate) const {
 	
 	double z = candidate->getRedshift();
 	double E = candidate->current.getEnergy(); // multiply by (1 + z) for E(z)
