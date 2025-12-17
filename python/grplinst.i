@@ -120,7 +120,7 @@
 }
 
 %apply(double* INPLACE_ARRAY1, int DIM1) { 
-	(double *c, int len_c) 
+	(double* c, int len_c) 
 };
 
 %apply(double* ARGOUT_ARRAY1, int DIM1) {
@@ -156,7 +156,7 @@
 
 
 /*************************************************************************************************/
-/**                                   	CRPropa			                                        **/
+/**                                         CRPropa                                             **/
 /*************************************************************************************************/
 
 /* Headers */
@@ -166,7 +166,6 @@
 
 /* Import CRPropa in wrapper */
 %import (module = "crpropa") "crpropa.i"
-
 
 
 /*************************************************************************************************/
@@ -185,7 +184,6 @@
 %include "grplinst/Geometry.h"
 %include "grplinst/Medium.h"
 %include "grplinst/PlasmaInstability.h"
-%include "grplinst/Simulation.h"
 
 
 /*************************************************************************************************/
@@ -203,8 +201,6 @@
 
 %feature("director") grplinst::MediumDensity;
 %feature("director") grplinst::MediumTemperature;
-
-
 
 
 /*************************************************************************************************/

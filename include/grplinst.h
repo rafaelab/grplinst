@@ -7,7 +7,6 @@
 #include "grplinst/Geometry.h"
 #include "grplinst/Medium.h"
 #include "grplinst/PlasmaInstability.h"
-#include "grplinst/Simulation.h"
 
 
 #endif
