@@ -12,7 +12,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 
 # compilation flags
-set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_FLAGS "-std=c++11")
 
 # enable extra warnings on debug builds
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wextra")
@@ -38,7 +38,6 @@ include_directories(include
 	${CRPropa_kiss_INCLUDE_DIR}
 	${CRPropa_HepID_INCLUDE_DIR}
 	${CRPropa_INCLUDE_DIR}  
-	# external/eigen3
 	${CMAKE_CURRENT_BINARY_DIR}/include 
 	${CMAKE_CURRENT_SOURCE_DIR}/../include
 	)
@@ -46,10 +45,10 @@ include_directories(include
 
 # source files for compilation
 set(SOURCE_FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Geometry.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Flow.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Medium.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/PlasmaInstability.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Simulation.cc
 	)
 
 
