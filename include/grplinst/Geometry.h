@@ -2,6 +2,7 @@
 #define GRPLINST_GEOMETRY_H
 
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -15,19 +16,20 @@
 #include <crpropa/Units.h>
 #include <crpropa/Vector3.h>
 
+
+
 namespace grplinst {
 
-
 /**
- @class EmissionGeometry
- @brief Abstract base class holding an arbitrary shape.
- */
+ * @class EmissionGeometry
+ * @brief Abstract base class holding an arbitrary shape.
+*/
 class EmissionGeometry : public crpropa::Referenced {
 	protected:
 		std::string shapeName;
+
 	public:
-		// EmissionGeometry();
-		// virtual ~EmissionGeometry() = default;
+		virtual ~EmissionGeometry() = default;
 		void setShapeName(std::string shape);
 		std::string getShapeName() const;
 		virtual double computeArea() const = 0;
@@ -38,8 +40,12 @@ class EmissionGeometry : public crpropa::Referenced {
 
 
 /**
- @class Cone
- @brief Geometrical shape: cone (regular).
+ * @class Cone
+ * @brief Geometrical shape: cone (regular).
+ * Here we define a cone by its axis, angle, height, and radius:
+ * - axis: direction vector of the cone axis
+ * - angle: opening angle of the cone (in radians)
+ * - height: height of the cone
  */
 class Cone : public EmissionGeometry {
 	protected:
@@ -47,10 +53,11 @@ class Cone : public EmissionGeometry {
 		double angle;
 		double height;
 		double radius;
+
 	public:
 		Cone();
 		Cone(double angle, double height, crpropa::Vector3d axis = crpropa::Vector3d(-1, 0, 0));
-		~Cone();
+		~Cone() override = default;
 		void setAngle(double angle);
 		void setHeight(double height);
 		void setRadius(double radius);
@@ -69,4 +76,4 @@ class Cone : public EmissionGeometry {
 
 } // namespace grplinst
 
-#endif // GRPLINST_FLOW_H
+#endif // GRPLINST_GEOMETRY_H

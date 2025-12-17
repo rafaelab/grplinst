@@ -4,14 +4,11 @@
 namespace grplinst {
 
 
-MediumTemperature::MediumTemperature() {
-}
+/*****************************************************************************/
+/*                             MediumTemperature                             */
+/*****************************************************************************/
 
-MediumTemperature::~MediumTemperature() {
-}
-
-double MediumTemperature::getVelocity(int id, const crpropa::Vector3d &position, double redshift) const {
-	// mass
+double MediumTemperature::getVelocity(int id, const crpropa::Vector3d& position, const double& redshift) const {
 	double m = 0;
 	if (fabs(id) == 11) {
 		m = crpropa::mass_electron;
@@ -26,34 +23,82 @@ double MediumTemperature::getVelocity(int id, const crpropa::Vector3d &position,
 	return sqrt(crpropa::k_boltzmann * T / m);
 }
 
+
+/*****************************************************************************/
+/*                       MediumTemperatureHomogeneous                        */
+/*****************************************************************************/
+
 MediumTemperatureHomogeneous::MediumTemperatureHomogeneous(double T) : MediumTemperature() {
+	setTemperatureValue(T);
+}
+
+void MediumTemperatureHomogeneous::setTemperatureValue(double T) {
 	temperature = T;
 }
 
-MediumTemperatureHomogeneous::~MediumTemperatureHomogeneous() {
+double MediumTemperatureHomogeneous::getTemperatureValue() const {
+	return temperature;
 }
 
-double MediumTemperatureHomogeneous::getTemperature(const crpropa::Vector3d &position, double redshift) const {
+double MediumTemperatureHomogeneous::getTemperature(const crpropa::Vector3d& position, const double& redshift) const {
 	return temperature * (1 + redshift);
 }
 
 
-//////////////////
-MediumDensity::MediumDensity() {
-}
+/*****************************************************************************/
+/*                          MediumTemperatureGrid                            */
+/*****************************************************************************/
 
-MediumDensity::~MediumDensity() {
-}
+// MediumTemperatureGrid::MediumTemperatureGrid(const crpropa::ref_ptr<crpropa::Grid1f>& grid) : MediumTemperature() {
+// 	setGrid(grid);
+// }
+
+// void MediumTemperatureGrid::setGrid(const crpropa::ref_ptr<crpropa::Grid1f>& g) {
+// 	grid = g;
+// }
+
+// crpropa::ref_ptr<crpropa::Grid1f> MediumTemperatureGrid::getGrid() const {
+// 	return grid;
+// }
+
+// double MediumTemperatureGrid::getTemperature(const crpropa::Vector3d& position, const double& redshift) const {
+// 	return grid->getValue(position) * (1 + redshift);
+// }
+
+
+
+
+
+// 	void setGrid(ref_ptr<Grid3f> grid);
+// 	ref_ptr<Grid3f> getGrid();
+
+
+
+/*****************************************************************************/
+/*                              MediumDensity                                */
+/*****************************************************************************/
+
+
+
+/*****************************************************************************/
+/*                         MediumDensityHomogeneous                          */
+/*****************************************************************************/
 
 MediumDensityHomogeneous::MediumDensityHomogeneous(double n) : MediumDensity() {
+	setDensityValue(n);
+}
+
+void MediumDensityHomogeneous::setDensityValue(double n) {
 	density = n;
 }
 
-MediumDensityHomogeneous::~MediumDensityHomogeneous() {
+double MediumDensityHomogeneous::getDensityValue() const {
+	return density;
 }
 
-double MediumDensityHomogeneous::getDensity(const crpropa::Vector3d &position, double redshift) const {
+double MediumDensityHomogeneous::getDensity(const crpropa::Vector3d& position, const double& redshift) const {
 	return density * crpropa::pow_integer<3>(1 + redshift);
 }
+
 
 } // namespace grplinst

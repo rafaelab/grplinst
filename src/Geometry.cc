@@ -32,9 +32,6 @@ Cone::Cone(double angle, double height, crpropa::Vector3d axis) {
 	setShapeName("cone");
 }
 
-Cone::~Cone() {
-}
-
 void Cone::setAngle(double a) {
 	angle = a;
 }
