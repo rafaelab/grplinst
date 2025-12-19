@@ -21,6 +21,10 @@ namespace grplinst {
 
 
 
+/*****************************************************************************/
+/*                         Flow (abstract base class)                        */
+/*****************************************************************************/
+
 /**
  * @class Flow
  * @brief Abstract base class to define properties related to the emitting object. 
@@ -106,6 +110,12 @@ class Flow : public crpropa::Referenced {
 		// double getPairProductionMeanFreePath(double energy, double redshift = 0) const;
 };
 
+
+
+/*****************************************************************************/
+/*                               FlowHomogeneous                             */
+/*****************************************************************************/
+
 /**
  * @class FlowHomogeneous
  * @brief Implementation of a homogeneous flow with constant density everywhere.
@@ -166,6 +176,10 @@ class FlowHomogeneous : public Flow {
 		double estimateBeamDensity(double energy, double redshift) const;
 };
 
+
+/*****************************************************************************/
+/*                                  FlowJet1D                                */
+/*****************************************************************************/
 
 /**
  * @class FlowJet1D
@@ -276,39 +290,12 @@ class FlowJet1D : public Flow {
 };
 
 
-/**
- * @brief Convert beam particle density to luminosity (analytical upper limit).
- *
- * Converts a given beam number density to an equivalent luminosity using
- * the scaling relation from Alves Batista et al. (2019) (their eq. 13),
- * based on Broderick et al. (2012).
- * This is an upper limit based on analytical estimates of cascade development assuming inverse Compton,
- * and considering the plasma cooling dominated by the kinetic oblique mode.
- *
- * @param n Beam number density.
- * @param Ee Characteristic particle energy (in internal energy units).
- * @param z Redshift.
- * @param a Spectral parameter (default 4.5).
- * @return Luminosity in erg/s (approximate upper limit).
- */
 
-inline double beamDensityToLuminosity(double n, double Ee, double z, double a = 4.5) {
-	return 1e38 * (n / 3.7e-16) * (crpropa::TeV / Ee) * pow((1. + z) / 2., 4. - 3. * a);
-}
+/*****************************************************************************/
+/*                             Other definitions                             */
+/*****************************************************************************/
 
 
-/**
- * @brief Convert luminosity to beam particle density (inverse of beamDensityToLuminosity).
- *
- * @param L Luminosity in erg/s.
- * @param Ee Characteristic particle energy (in internal energy units).
- * @param z Redshift.
- * @param a Spectral parameter (default 4.5).
- * @return Estimated beam number density.
- */
-inline double beamLuminosityToDensity(double L, double Ee, double z, double a = 4.5) {
-	return 3.7e-16 * (L / 1e38) * (Ee / crpropa::TeV) * pow((1. + z) / 2., 3. * a - 4.);
-}
 
 
 } // namespace grplinst
