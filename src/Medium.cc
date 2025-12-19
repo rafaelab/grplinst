@@ -66,14 +66,6 @@ double MediumTemperatureHomogeneous::getTemperature(const crpropa::Vector3d& pos
 // }
 
 
-
-
-
-// 	void setGrid(ref_ptr<Grid3f> grid);
-// 	ref_ptr<Grid3f> getGrid();
-
-
-
 /*****************************************************************************/
 /*                              MediumDensity                                */
 /*****************************************************************************/

@@ -20,6 +20,11 @@
 
 namespace grplinst {
 
+
+/*****************************************************************************/
+/*                   EmissionGeometry (abstract base class)                  */
+/*****************************************************************************/
+
 /**
  * @class EmissionGeometry
  * @brief Abstract base class holding an arbitrary shape.
@@ -38,6 +43,12 @@ class EmissionGeometry : public crpropa::Referenced {
 		// auto materialise();
 };
 
+
+
+
+/*****************************************************************************/
+/*                          Cone (<: EmissionGeometry)                       */
+/*****************************************************************************/
 
 /**
  * @class Cone
@@ -71,7 +82,6 @@ class Cone : public EmissionGeometry {
 		double computeVolume() const override;
 };
 
-// Cone* materialiseCone(EmissionGeometry* geometry);
 
 
 } // namespace grplinst

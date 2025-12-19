@@ -1,3 +1,6 @@
+#ifndef GRPLINST_PLASMAINSTABILITY_H
+#define GRPLINST_PLASMAINSTABILITY_H
+
 
 #include <crpropa/Common.h>
 #include <crpropa/Cosmology.h>
@@ -8,16 +11,18 @@
 #include <crpropa/Referenced.h>
 #include <crpropa/Units.h>
 
-
 #include "grplinst/Medium.h"
 #include "grplinst/Flow.h"
-
 
 
 namespace grplinst {
 
 
 
+
+/*****************************************************************************/
+/*                   PlasmaInstability (abstract base class)                 */
+/*****************************************************************************/
 
 class PlasmaInstability : public crpropa::Module {
 	protected:
@@ -44,6 +49,11 @@ class PlasmaInstability : public crpropa::Module {
 using PlasmaInstabilityPtr = std::unique_ptr<PlasmaInstability>;
 // using PlasmaInstabilityRefPtr = crpropa::ref_ptr<PlasmaInstability>;
 
+
+
+/*****************************************************************************/
+/*                         Plasma Instability Models                         */
+/*****************************************************************************/
 
 /**
  * @brief Broderick et al. 2012 model for plasma instability energy loss time.
@@ -116,13 +126,32 @@ class PlasmaInstabilityShalaby2020 : public PlasmaInstability {
 };
 
 
+/*****************************************************************************/
+/*                             Helper functions                              */
+/*****************************************************************************/
+
+/**
+ * @brief Computes the plasma frequency for a given density and particle type.
+ * @param density Particle number density in m^-3.
+ * @param id Particle ID (default: electron).
+ * @return Plasma frequency in Hz.
+ */
+inline double plasmaFrequency(double density, int id = 11);
 
 
-// Helper function to compute the plasma frequency for a given density and particle type.
-double plasmaFrequency(double density, int id = 11);
+/**
+ * @brief Computes the maximum linear growth frequency of the instability.
+ * Neglects magnetic fields and assumes ΔΘ = <1/γ>.
+ * @param beamDensity Beam particle number density in m^-3.
+ * @param mediumDensity Medium particle number density in m^-3.
+ * @param lorentzFactor Mean Lorentz factor of the beam particles.
+ * @param id Particle ID of the beam particles (default: electron).
+ * @return Maximum linear growth frequency in Hz.
+ */
+inline double maximumLinearGrowthFrequency(double beamDensity, double mediumDensity, double lorentzFactor, int id = 11);
 
-// Computes the maximum linear growth rate (in the absence of magnetic fields).
-// Assumes ΔΘ = <1/γ>.
-double maximumLinearGrowthFrequency(double beamDensity, double mediumDensity, double lorentzFactor, int id = 11);
+
 
 } // namespace grplinst
+
+#endif // GRPLINST_PLASMAINSTABILITY_H
