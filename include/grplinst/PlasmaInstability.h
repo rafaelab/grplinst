@@ -17,96 +17,105 @@
 namespace grplinst {
 
 
-enum class PlasmaInstabilityModel {
-	Broderick2012,
-	Miniati2013,
-	Schlickeiser2012,
-	Sironi2014,
-	Vafin2018,
-	Bret2010_2s,
-	Bret2010_f,
-	Shalaby2020
-};
-
 
 
 class PlasmaInstability : public crpropa::Module {
 	protected:
-		PlasmaInstabilityModel model;
 		crpropa::ref_ptr<Flow> flowProperties;
 		crpropa::ref_ptr<MediumDensity> mediumDensity;
 		crpropa::ref_ptr<MediumTemperature> mediumTemperature;
 		double limit;
 
 	public:
-		PlasmaInstability(PlasmaInstabilityModel model, crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
-		~PlasmaInstability() = default;
-		void setModel(PlasmaInstabilityModel m);
+		PlasmaInstability(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
+		virtual ~PlasmaInstability() = default;
 		void setFlowProperties(crpropa::ref_ptr<Flow> flow);
 		void setMediumDensity(crpropa::ref_ptr<MediumDensity> density);
 		void setMediumTemperature(crpropa::ref_ptr<MediumTemperature> temperature);
 		void setLimit(double limit);
-		PlasmaInstabilityModel getModel() const;
 		crpropa::ref_ptr<MediumDensity> getMediumDensity() const;
 		crpropa::ref_ptr<Flow> getFlowProperties() const;
 		crpropa::ref_ptr<MediumTemperature> getMediumTemperature() const;
 		void process(crpropa::Candidate* candidate) const;
-		double computeEnergyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const;
 		double computeEnergyLossPerLength(crpropa::Candidate* candidate) const;
-		
-	private:
-		static double computeEnergyLossTime_Broderick2012(double energy, double beamDensity, double mediumDensity, double mediumTemperature);
-		static double computeEnergyLossTime_Schlickeiser2012(double energy, double beamDensity, double mediumDensity, double mediumTemperature);
-		// static double computeEnergyLossTime_Miniati2013(double energy, double beamDensity, double mediumDensity, double mediumTemperature);
-		static double computeEnergyLossTime_Sironi2014(double energy, double beamDensity, double mediumDensity, double mediumTemperature);
-		static double computeEnergyLossTime_Vafin2018(double energy, double beamDensity, double mediumDensity, double mediumTemperature);
-		static double computeEnergyLossTime_Bret2010_2s(double energy, double beamDensity, double mediumDensity, double mediumTemperature);
-		static double computeEnergyLossTime_Bret2010_f(double energy, double beamDensity, double mediumDensity, double mediumTemperature);
-		static double computeEnergyLossTime_Shalaby2020(double energy, double beamDensity, double mediumDensity, double mediumTemperature);
+		virtual double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const = 0;
+};
+
+using PlasmaInstabilityPtr = std::unique_ptr<PlasmaInstability>;
+// using PlasmaInstabilityRefPtr = crpropa::ref_ptr<PlasmaInstability>;
+
+
+/**
+ * @brief Broderick et al. 2012 model for plasma instability energy loss time.
+ * @see Broderick, Chang, Pfrommer. Astrophys. J. 752 (2012) 22.
+ */
+class PlasmaInstabilityBroderick2012 : public PlasmaInstability {
+	public:
+		using PlasmaInstability::PlasmaInstability;
+		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+};
+
+/**
+ * @brief Schlickeiser et al. 2012 model for plasma instability energy loss time.
+ * @see Schlickeiser, Ibscher, Supsar. Astrophys. J. 758 (2012) 102.
+ */
+class PlasmaInstabilitySchlickeiser2012 : public PlasmaInstability {
+	public:
+		using PlasmaInstability::PlasmaInstability;
+		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+};
+
+/**
+ * @brief Sironi & Giannios 2014 model for plasma instability energy loss time.
+ * @see Sironi, Giannios. Astrophys. J. 787 (2014) 49. arXiv:1312.4538
+ */
+class PlasmaInstabilitySironi2014 : public PlasmaInstability {
+	public:
+		using PlasmaInstability::PlasmaInstability;
+		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+};
+
+/**
+ * @brief Vafin et al. 2018 model for plasma instability energy loss time.
+ * @see Vafin, Pohl, Niemiec, Bret. Astrophys. J. 865 (2018) 23. arXiv:1807.04203
+ */
+class PlasmaInstabilityVafin2018 : public PlasmaInstability {
+	public:
+		using PlasmaInstability::PlasmaInstability;
+		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+};
+
+/**
+ * @brief Bret et al. 2010 two-stream model for plasma instability energy loss time.
+ * @see Bret, Gremillet, Dieckmann. Phys. Plasmas 17 (2010) 120501. arXiv:1010.5763
+ */
+class PlasmaInstabilityBret2010TwoStream : public PlasmaInstability {
+	public:
+		using PlasmaInstability::PlasmaInstability;
+		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+};
+
+/**
+ * @brief Bret et al. 2010 filamentation model for plasma instability energy loss time.
+ * @see Bret, Gremillet, Dieckmann. Phys. Plasmas 17 (2010) 120501. arXiv:1010.5763
+ */
+class PlasmaInstabilityBret2010Filamentation : public PlasmaInstability {
+	public:
+		using PlasmaInstability::PlasmaInstability;
+		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+};
+
+/**
+ * @brief Shalaby et al. 2020 model for plasma instability energy loss time.
+ * @see Shalaby et al. Phys. Rev. Lett. 124 (2020) 105101. arXiv:1907.13350
+ */
+class PlasmaInstabilityShalaby2020 : public PlasmaInstability {
+	public:
+		using PlasmaInstability::PlasmaInstability;
+		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
 };
 
 
-
-// // Broderick, Chang, Pfrommer. Astrophys. J. 752 (2012) 22. arXiv:1106.5494
-// class PlasmaInstabilityBroderick2012 : public PlasmaInstability {
-// 	public:
-// 		PlasmaInstabilityBroderick2012(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
-// 		// double computeCriticalDensity() const;
-// 		// double computeEnergyLossTime(double energy) const;
-// 		// double computeEnergyLossPerLength(crpropa::Candidate* candidate) const;
-// };
-
-// // Miniati & Elyiv. Astrophys. J. 770 (2013) 54. arXiv:1208.1761
-// class PlasmaInstabilityMiniati2013 : public PlasmaInstability {
-// 	private:
-// 		std::vector<double> _w;
-// 		std::vector<double> _d;
-// 	public:
-// 		PlasmaInstabilityMiniati2013(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
-// 		double energyLoss(crpropa::Candidate* candidate) const;
-// 		void initTable();
-// };
-
-// //  Schlickeiser, Ibscher, Supsar. Astrophys. J. 758 (2012) 102.
-// class PlasmaInstabilitySchlickeiser2012 : public PlasmaInstability {
-// 	public:
-// 		PlasmaInstabilitySchlickeiser2012(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
-// 		double energyLoss(crpropa::Candidate* candidate) const;
-// };
-
-// //  Sironi, Giannios. Astrophys. J. 787 (2014) 49. arXiv:1312.4538
-// class PlasmaInstabilitySironi2014 : public PlasmaInstability {
-// 	public:
-// 		PlasmaInstabilitySironi2014(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
-// 		double energyLoss(crpropa::Candidate* candidate) const;
-// };
-
-// //  Vafin, Rafighi, Pohl, Niemiec. Astrophys. J. 857 (2018) 43. arXiv:1803.02990
-// class PlasmaInstabilityVafin2018 : public PlasmaInstability {
-// 	public:
-// 		PlasmaInstabilityVafin2018(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
-// 		double energyLoss(crpropa::Candidate* candidate) const;
-// };
 
 
 // Helper function to compute the plasma frequency for a given density and particle type.
