@@ -37,40 +37,25 @@ find_path(CRPropa_SWIG_PATH crpropa.i
 		share/crpropa/swig_interface
 	)
 
-# Find CRPropa library
-find_library(CRPropa_LIBRARY NAMES crpropa libcrpropa
-	HINTS  
+# Find CRPropa library (look for base name; platform suffixes are handled by CMake)
+find_library(CRPropa_LIBRARY NAMES crpropa
+	HINTS
 		${CRPropa_INSTALL_PREFIX}/lib
 		$ENV{CRPropa_DIR}/build
 		$ENV{CRPropa_DIR}/build/lib
 		crpropa
-		lib/crpropa 
+		lib/crpropa
 		crpropa/lib
-		)
+)
 
-# Find CRPropa's kiss library and headers
-find_library(CRPropa_kiss_LIBRARY NAMES libkiss.a
-	HINTS 
-		${CRPropa_INSTALL_PREFIX}/libs/kiss
-		$ENV{CRPropa_DIR}/build/libs/kiss
-		lib/kiss
-		lib
-	)
-find_path(CRPropa_kiss_INCLUDE_DIR kiss/logger.h
-	HINTS 
-		${CRPropa_INSTALL_PREFIX}/include
-		$ENV{CRPropa_DIR}/build/include
-		include
-	)
-
-# Find CRPropa's HepPID library
-find_library(CRPropa_HepPID_LIBRARY NAMES libHepPID.a
-	HINTS 
+# Find CRPropa's HepPID library (use base name)
+find_library(CRPropa_HepPID_LIBRARY NAMES HepPID
+	HINTS
 		${CRPropa_INSTALL_PREFIX}/libs/HepPID
 		$ENV{CRPropa_DIR}/build/libs/HepPID
 		lib/HepPID
 		lib
-	)
+)
 find_path(CRPropa_HepPID_INCLUDE_DIR HepPID/ParticleIDMethods.hh
 	HINTS 
 		${CRPropa_INSTALL_PREFIX}/include
@@ -78,20 +63,14 @@ find_path(CRPropa_HepPID_INCLUDE_DIR HepPID/ParticleIDMethods.hh
 		include
 	)
 
-# # Find CRPropa's Eigen library
-# find_path(CRPropa_Eigen_INCLUDE_DIR Eigen/Core
-# 	HINTS 
-# 		${CRPropa_INSTALL_PREFIX}/include
-# 		$ENV{CRPropa_DIR}/build/include
-# 		include
-# 	)
-
-# Define SWIG interface file
-set(CRPropa_SWIG_INTERFACE_FILE "${CRPropa_SWIG_PATH}/${CRPropa_SWIG_FILE}")
+# Define SWIG interface file (constructed later when ${CRPropa_SWIG_PATH} is available)
+# CRPropa_SWIG_INTERFACE_FILE will be set only when CRPropa_SWIG_PATH is known
 
 
 # Determine whether CRPropa has really been found
-if(NOT (${CRPropa_SWIG_INTERFACE_FILE} STREQUAL "") AND NOT (${CRPropa_INCLUDE_DIR} NOT STREQUAL "") AND NOT (${CRPropa_LIBRARY}  STREQUAL ""))
+# Require include dir, library and swig path to consider CRPropa found
+if(CRPropa_INCLUDE_DIR AND CRPropa_LIBRARY AND CRPropa_SWIG_PATH)
+	set(CRPropa_SWIG_INTERFACE_FILE "${CRPropa_SWIG_PATH}/${CRPropa_SWIG_FILE}")
 	set(CRPropa_FOUND True)
 else()
 	set(CRPropa_FOUND False)
@@ -114,24 +93,42 @@ if(NOT CRPropa_FOUND)
 		endif()
 	endif(Python_FOUND AND NOT CRPropa_SWIG_PATH)
 endif(NOT CRPropa_FOUND)
-list(APPEND CMAKE_PREFIX_PATH ${CRPropa_INSTALL_PREFIX})
+if(DEFINED CRPropa_INSTALL_PREFIX)
+	list(APPEND CMAKE_PREFIX_PATH ${CRPropa_INSTALL_PREFIX})
+endif()
 
 # If CRPropa not found, warn the user
 if(NOT CRPropa_FOUND)
 	message(STATUS "CRPropa could **NOT** be found!!!")
 	return()
-endif(NOT CRPropa_FOUND)
+endif()
 
 
 
-message(STATUS "CRPropa install prefix: ${CRPropa_INSTALL_PREFIX}")
-message(STATUS "CRPropa SWIG interface file: ${CRPropa_SWIG_INTERFACE_FILE}")
-message(STATUS "CRPropa include path: ${CRPropa_INCLUDE_DIR}")
-message(STATUS "CRPropa library: ${CRPropa_LIBRARY}")
-message(STATUS "CRPropa's kiss include path: ${CRPropa_kiss_INCLUDE_DIR}")
-message(STATUS "CRPropa's kiss library: ${CRPropa_kiss_LIBRARY}")
-message(STATUS "CRPropa's HepPID include path: ${CRPropa_HepPID_INCLUDE_DIR}")
-message(STATUS "CRPropa's HepPID library: ${CRPropa_HepPID_LIBRARY}")
+if(DEFINED CRPropa_INSTALL_PREFIX)
+	message(STATUS "CRPropa install prefix: ${CRPropa_INSTALL_PREFIX}")
+endif()
+if(DEFINED CRPropa_SWIG_INTERFACE_FILE)
+	message(STATUS "CRPropa SWIG interface file: ${CRPropa_SWIG_INTERFACE_FILE}")
+endif()
+if(DEFINED CRPropa_INCLUDE_DIR)
+	message(STATUS "CRPropa include path: ${CRPropa_INCLUDE_DIR}")
+endif()
+if(DEFINED CRPropa_LIBRARY)
+	message(STATUS "CRPropa library: ${CRPropa_LIBRARY}")
+endif()
+if(DEFINED CRPropa_kiss_INCLUDE_DIR)
+	message(STATUS "CRPropa's kiss include path: ${CRPropa_kiss_INCLUDE_DIR}")
+endif()
+if(DEFINED CRPropa_kiss_LIBRARY)
+	message(STATUS "CRPropa's kiss library: ${CRPropa_kiss_LIBRARY}")
+endif()
+if(DEFINED CRPropa_HepPID_INCLUDE_DIR)
+	message(STATUS "CRPropa's HepPID include path: ${CRPropa_HepPID_INCLUDE_DIR}")
+endif()
+if(DEFINED CRPropa_HepPID_LIBRARY)
+	message(STATUS "CRPropa's HepPID library: ${CRPropa_HepPID_LIBRARY}")
+endif()
 # message(STATUS "CRPropa's Eigen include path: ${CRPropa_Eigen_INCLUDE_DIR}")
 
 

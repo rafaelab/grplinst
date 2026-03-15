@@ -44,6 +44,7 @@ set(SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Medium.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/PlasmaInstability.cc
 	)
+file(GLOB GRPLINST_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/grplinst/*.h")
 
 
 # decide on whether to use Python or not
@@ -75,7 +76,7 @@ if(ENABLE_PYTHON)
 		list(APPEND CRPROPA_SWIG_DEFINES -DWITHNUMPY)
 		include_directories(${Python_NumPy_INCLUDE_DIRS})
 		message(STATUS "NumPy headers: ${Python_NumPy_INCLUDE_DIRS} (version ${Python_NumPy_VERSION})")
-	elseif(Python_NumPy_FOUND)
+	else()
 		message(STATUS "NumPy: NOT FOUND. The code might work just fine without NumPy, but some features in Python might not be straightfoward to use.")
 	endif(Python_NumPy_FOUND)
 
@@ -113,6 +114,7 @@ if(ENABLE_PYTHON)
 		-dirprot -o ${CMAKE_CURRENT_BINARY_DIR}/grplinst_wrap.cxx 
 		-outdir ${CMAKE_CURRENT_BINARY_DIR} 
 		${CMAKE_CURRENT_SOURCE_DIR}/python/grplinst.i
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/python/grplinst.i ${GRPLINST_HEADERS}
 	)
 	include_directories(include 
 		${CMAKE_CURRENT_BINARY_DIR}/include 
@@ -126,7 +128,7 @@ if(ENABLE_PYTHON)
 	target_link_libraries(grplinst ${CRPropa_LIBRARY} ${Python_LIBRARIES})
 
 # compile code to work in C++ only, without Python support
-elseif()
+else()
 
 	# build interface and source in one library
 	add_library(grplinst MODULE ${SOURCE_FILES})
