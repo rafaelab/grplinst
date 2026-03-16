@@ -58,23 +58,13 @@ double FlowHomogeneous::getDensity(double energy, const crpropa::Vector3d& posit
 	// factor 0.5 in energy comes from the average energy of the parent
 	double lambdaPP = 35. * crpropa::Mpc * (0.5 * crpropa::TeV / energy) * pow((1. + redshift) / 2., -4.5);
 
-	// IC energy-loss rate in Thomson regime: 
-	// Γ_ic = (4/3) σ_T c u_CMB E / (m_e c²)² × (1+z)^4
+	// IC energy-loss rate in Thomson regime
 	static const double u_CMB = 4.178e-14; 
-	double mec2 = crpropa::mass_electron * crpropa::c_squared;
+	static const double mec2 = crpropa::mass_electron * crpropa::c_squared;
 	double GammaIC = (4. / 3.) * crpropa::sigma_thomson * crpropa::c_light * u_CMB * (energy / mec2) * pow(1. + redshift, 4.) / mec2;
 
-	// (4. / 3.) * U.σₑ * U.c * U.u_CMB * (E / U.mₑc²) / U.mₑc² * (1 + z) ^ 4
-
-	if (energy / crpropa::eV > 9e11 and energy / crpropa::eV < 2e12)
-	std::cout << "==> lambdaPP = " << lambdaPP / crpropa::Mpc << " Mpc" << " (at E = " << energy / crpropa::eV << " eV)" << std::endl;
-	std::cout << "==> GammaIC = " << GammaIC << " / s" << " (at E = " << energy / crpropa::eV << " eV)" << std::endl;
-
-	// nb = L / (2π λ_pp³ Γ_ic E)   [m⁻³]
+	// eq. 7 of Broderick et al. 2012
 	return luminosity / (2. * M_PI * crpropa::pow_integer<3>(lambdaPP) * GammaIC) / energy;
-
-	// eq. 7 Broderick+ 12
-	// return 3.7e-16 * pow(0.5 + 0.5 * redshift, 9.5) * (luminosity / 1e38) * (energy / crpropa::TeV);
 }
 
 
