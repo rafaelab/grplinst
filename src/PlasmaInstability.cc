@@ -59,14 +59,14 @@ void PlasmaInstability::process(crpropa::Candidate* candidate) const {
 	double dx = candidate->getCurrentStep() / (1 + z);
 
 	double dEdx = computeEnergyLossPerLength(candidate);
-	if (dEdx < 0) // prevent overshooting
-		dEdx = 0;
-
-	double Enew = E - dEdx * dx;
-
+	if (dEdx <= 0) // prevent overshooting
+		return;
+	
+	double Enew = std::max(0.0, E - dEdx * dx);
 	candidate->current.setEnergy(Enew / (1 + z));
 	candidate->limitNextStep(limit * E / dEdx);
 }
+
 
 double PlasmaInstability::computeEnergyLossPerLength(crpropa::Candidate* candidate) const {
 	double z = candidate->getRedshift();
@@ -75,14 +75,14 @@ double PlasmaInstability::computeEnergyLossPerLength(crpropa::Candidate* candida
 
 	double n = mediumDensity->getDensity(candidate->current.getPosition(), z);
 	double T = mediumTemperature->getTemperature(candidate->current.getPosition(), z);
-	double nb = flowProperties->getDensity(candidate->current.getPosition(), z);
+	double nb = flowProperties->getDensity(E, candidate->current.getPosition(), z);
 	
 	double tau = energyLossTime(E, nb, n, T);
-
+	if (tau <= 0.)
+		return 0.;
 
 	return E / (crpropa::c_light * tau);
 }
-
 
 
 /*****************************************************************************/
@@ -101,7 +101,7 @@ double PlasmaInstabilityBroderick2012::energyLossTime(double E, double nb, doubl
 double PlasmaInstabilitySchlickeiser2012::energyLossTime(double E, double nb, double n, double T) const {
 	double nCrit = 2.5e-19 / (E / crpropa::TeV) * (n / 0.1) * crpropa::pow_integer<2>(T / 1e4);
 	if (nb < nCrit) {
-		return 5e14 * pow(E / crpropa::TeV, 5. / 3.) * cbrt(nb / 1e-16) * pow(n / 0.1, -5. / 6.) * crpropa::pow_integer<2>(T / 1e4);
+		return 5e14 * pow(E / crpropa::TeV, 5. / 3.) * cbrt(nb / 1e-16) * pow(n / 0.1, -5. / 6.) / crpropa::pow_integer<2>(T / 1e4);
 	} else {
 		return 8e6 * cbrt(E / crpropa::TeV) / cbrt(nb / 1e-16) / pow(n / 0.1, 1. / 6.) * (1 + 1.25 * log(T / 1e4) - 0.25 * log(n / 0.1));
 	}
@@ -117,14 +117,14 @@ double PlasmaInstabilitySironi2014::energyLossTime(double E, double nb, double n
 }
 
 double PlasmaInstabilityVafin2018::energyLossTime(double E, double nb, double n, double T) const {
-	return 1.9e11 * pow(E / crpropa::TeV, 4. / 3.) / cbrt(nb / 1e-16) * cbrt(n / 0.1) / (T / 1e4);
+	 return 1.9e11 * pow(E / crpropa::TeV, 4. / 3.) * cbrt(n / 0.1) / cbrt(nb / 1e-16) / (T / 1e4);
 }
 
 double PlasmaInstabilityBret2010Filamentation::energyLossTime(double E, double nb, double n, double T) const {
 	return 2.5e9 * sqrt(E / crpropa::TeV) / sqrt(nb / 1e-16);
 }
 
-double PlasmaInstabilityBret2010TwoStream::energyLossTime(double E, double nb, double n, double T) const {
+double PlasmaInstabilityBret2010TwoStream::energyLossTime(double E, double nb, double n, double T) const {	 		
 	return 1.6e10 * (E / crpropa::TeV) / cbrt(nb / 1e-16) / pow(n / 0.1, 1. / 6.);
 }
 
@@ -140,7 +140,7 @@ double PlasmaInstabilityShalaby2020::energyLossTime(double E, double nb, double 
 
 double maximumLinearGrowthFrequency(double beamDensity, double mediumDensity, double inverseLorentzFactor, int id) {
 	double wp =  plasmaFrequency(mediumDensity, id);
-	return wp * beamDensity / mediumDensity / inverseLorentzFactor;
+	return wp * beamDensity / mediumDensity * inverseLorentzFactor;
 }
 
 double plasmaFrequency(double density, int id) {

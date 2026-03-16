@@ -44,25 +44,39 @@ double Flow::getLuminosity() const {
 /*                              FlowHomogeneous                              */
 /*****************************************************************************/
 
-FlowHomogeneous::FlowHomogeneous(double n, crpropa::Vector3d centre) { 
+FlowHomogeneous::FlowHomogeneous(double L, crpropa::Vector3d centre) { 
 	setOrigin(centre);
-	setDensityValue(n);
+	setLuminosity(L);
 }
 
 FlowHomogeneous::FlowHomogeneous() {
 }
 
-void FlowHomogeneous::setDensityValue(double n) {
-	density = n;
+
+double FlowHomogeneous::getDensity(double energy, const crpropa::Vector3d& position, double redshift) const {
+	// pair-production mean free path on EBL (Broderick+2012 eq. 1), photon energy = 2 * electron energy
+	// factor 0.5 in energy comes from the average energy of the parent
+	double lambdaPP = 35. * crpropa::Mpc * (0.5 * crpropa::TeV / energy) * pow((1. + redshift) / 2., -4.5);
+
+	// IC energy-loss rate in Thomson regime: 
+	// Γ_ic = (4/3) σ_T c u_CMB E / (m_e c²)² × (1+z)^4
+	static const double u_CMB = 4.178e-14; 
+	double mec2 = crpropa::mass_electron * crpropa::c_squared;
+	double GammaIC = (4. / 3.) * crpropa::sigma_thomson * crpropa::c_light * u_CMB * (energy / mec2) * pow(1. + redshift, 4.) / mec2;
+
+	// (4. / 3.) * U.σₑ * U.c * U.u_CMB * (E / U.mₑc²) / U.mₑc² * (1 + z) ^ 4
+
+	if (energy / crpropa::eV > 9e11 and energy / crpropa::eV < 2e12)
+	std::cout << "==> lambdaPP = " << lambdaPP / crpropa::Mpc << " Mpc" << " (at E = " << energy / crpropa::eV << " eV)" << std::endl;
+	std::cout << "==> GammaIC = " << GammaIC << " / s" << " (at E = " << energy / crpropa::eV << " eV)" << std::endl;
+
+	// nb = L / (2π λ_pp³ Γ_ic E)   [m⁻³]
+	return luminosity / (2. * M_PI * crpropa::pow_integer<3>(lambdaPP) * GammaIC) / energy;
+
+	// eq. 7 Broderick+ 12
+	// return 3.7e-16 * pow(0.5 + 0.5 * redshift, 9.5) * (luminosity / 1e38) * (energy / crpropa::TeV);
 }
 
-double FlowHomogeneous::getDensityValue() const {
-	return density;
-}
-
-double FlowHomogeneous::getDensity(const crpropa::Vector3d& position, double redshift) const {
-	return density * crpropa::pow_integer<3>(1 + redshift);
-}
 
 double FlowHomogeneous::getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
 	return lorentzFactorParticle * (1 + redshift);
@@ -72,9 +86,13 @@ double FlowHomogeneous::getMeanInverseLorentzFactor(const crpropa::Vector3d& pos
 	return 1. / lorentzFactorParticle / (1 + redshift);
 }
 
-double FlowHomogeneous::estimateBeamDensity(double E, double z) const {
-	return 3.7e-16 * pow((1. + z) / 2., 9.5) * E * (luminosity / 1e38) * (E / crpropa::TeV);
-}
+// double FlowHomogeneous::estimateBeamDensity(double E, double z) const {
+// 	return 3.7e-16 * pow((1. + z) / 2., 9.5) * E * (luminosity / 1e38) * (E / crpropa::TeV);
+// 	// double d = crpropa::redshift2LightTravelDistance(z);
+// 	// double rIC = 1.2 * crpropa::pow_integer<3>(1 + z) * crpropa::kpc;
+// 	// double L = luminosity;
+// 	// return L / (2 * M_PI * crpropa::pow_integer<3>(d) * rIC) / E;
+// }
 
 /*****************************************************************************/
 /*                                  FlowJet1D                                */
@@ -82,7 +100,7 @@ double FlowHomogeneous::estimateBeamDensity(double E, double z) const {
 
 FlowJet1D::FlowJet1D(const std::vector<double>& distances, const std::vector<double>& beamDensity, const std::vector<double>& lorentzFactor, const std::vector<double>& inverseLorentzFactor, double densityNorm, crpropa::Vector3d centre) {
 	if ((beamDensity.size() != distances.size()) or (lorentzFactor.size() != distances.size()) or (inverseLorentzFactor.size() != distances.size())) {
-		std::length_error("Vectors containing beam profile information should have the same size.");
+		throw std::length_error("Vectors containing beam profile information should have the same size.");
 	}
 	setOrigin(centre);
 	setDensityNormalisation(densityNorm);
@@ -175,7 +193,7 @@ std::vector<double> FlowJet1D::getInverseLorentzFactorProfile() const {
 	return meanInverseLorentzFactor;
 }
 
-double FlowJet1D::getDensity(const crpropa::Vector3d& position, double redshift) const {
+double FlowJet1D::getDensity(double energy, const crpropa::Vector3d& position, double redshift) const {
 	double n = crpropa::interpolate((position - origin).getR(), distance, densityProfile);
 	return n * crpropa::pow_integer<3>(1 + redshift);
 }
