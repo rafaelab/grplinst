@@ -86,7 +86,7 @@ class Flow : public crpropa::Referenced {
 		 * @param redshift The redshift at which the density is evaluated (default is 0).
 		 * @return The local particle density.
 		 */
-		virtual double getDensity(const crpropa::Vector3d& position, double redshift = 0) const = 0;
+		virtual double getDensity(double energy, const crpropa::Vector3d& position, double redshift = 0) const = 0;
 
 		/**
 		 * @brief Gets the mean Lorentz factor of the flow at a given position and redshift.
@@ -123,36 +123,46 @@ class Flow : public crpropa::Referenced {
  * The FlowHomogeneous class provides a simple implementation of the Flow interface, assuming a constant density throughout space.
 */
 class FlowHomogeneous : public Flow {
-	private:
-		double density = 0.;
-
 	public:
 		 /** @brief Default constructor (density = 0, origin = (0,0,0)). */
 		FlowHomogeneous();
 
 		/**
-		 * @brief Construct a homogeneous flow with given density and optional origin.
-		 * @param density Constant particle density.
+		 * @brief Construct a homogeneous flow with given luminosity and optional origin.
+		 * @param luminosity Constant luminosity.
 		 * @param origin Flow origin position (default: (0,0,0)).
 		 */
 
-		FlowHomogeneous(double density, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		FlowHomogeneous(double luminosity, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
 
-		/**
-		 * @brief Set the (total) density of the homogeneous flow.
-		 * @param density New constant density value.
-		 */
-		void setDensityValue(double density);
+		// /**
+		//  * @brief Set the (total) luminosity of the homogeneous flow.
+		//  * @param luminosity New constant luminosity value.
+		//  */
+		// void setLuminosity(double luminosity);
 
-		/**
-		 * @brief Get the (total) density of the homogeneous flow.
-		 * @return The constant density value.
-		 */
-		double getDensityValue() const;
+		// /**
+		//  * @brief Get the (total) density of the homogeneous flow.
+		//  * @return The constant luminosity value.
+		//  */
+		// double getLuminosity() const;
 
 
-		/**  */
-		double getDensity(const crpropa::Vector3d& position, double redshift = 0) const;
+		/**  
+		 * @brief Get the local particle density at a given position and redshift.
+		 * @param energy Particle energy.
+		 * @param position The position vector where the density is queried.
+		 * @param redshift The redshift at which the density is evaluated (default is 0).
+		 * @return The local particle density, computed based on luminosity and redshift.
+		 * 
+		 * This method computes the local particle density based on the luminosity of the flow and the redshift, following a specific scaling relation. 
+		 * It assumes that all luminosity goes into beam particles and that Compton cooling dominates electron energy losses, providing an upper limit on the beam density.
+		 * Ideally, one should compute the beam density self-consistently during the simulation or estimate it based on the pair production rate.
+		*/
+		// Implements base-class virtual: density at a given position and redshift
+		double getDensity(double energy, const crpropa::Vector3d& position, double redshift = 0) const;
+
+		// Optional helper: density as a function of particle energy (kept for compatibility)
 		double getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 		double getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 
@@ -173,7 +183,7 @@ class FlowHomogeneous : public Flow {
 		 * @param redshift Redshift.
 		 * @return Estimated beam density.
 		*/
-		double estimateBeamDensity(double energy, double redshift) const;
+		// double estimateBeamDensity(double energy, double redshift) const;
 };
 
 
@@ -284,7 +294,7 @@ class FlowJet1D : public Flow {
 		std::vector<double> getInverseLorentzFactorProfile() const;
 
 		/**  */
-		double getDensity(const crpropa::Vector3d& position, double redshift = 0) const;
+		double getDensity(double energy, const crpropa::Vector3d& position, double redshift = 0) const;
 		double getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 		double getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 };
