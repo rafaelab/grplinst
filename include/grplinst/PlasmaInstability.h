@@ -136,7 +136,7 @@ class PlasmaInstabilityShalaby2020 : public PlasmaInstability {
  * @param id Particle ID (default: electron).
  * @return Plasma frequency in Hz.
  */
-inline double plasmaFrequency(double density, int id = 11);
+double plasmaFrequency(double density, int id = 11);
 
 
 /**
@@ -148,7 +148,7 @@ inline double plasmaFrequency(double density, int id = 11);
  * @param id Particle ID of the beam particles (default: electron).
  * @return Maximum linear growth frequency in Hz.
  */
-inline double maximumLinearGrowthFrequency(double beamDensity, double mediumDensity, double lorentzFactor, int id = 11);
+double maximumLinearGrowthFrequency(double beamDensity, double mediumDensity, double lorentzFactor, int id = 11);
 
 
 
