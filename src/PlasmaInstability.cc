@@ -67,9 +67,8 @@ void PlasmaInstability::process(crpropa::Candidate* candidate) const {
 	candidate->limitNextStep(limit * E / dEdx);
 }
 
-
 double PlasmaInstability::computeEnergyLossPerLength(crpropa::Candidate* candidate) const {
-	double tau = energyLossTime(candidate);
+	double tau = energyLossTime(*candidate);
 	if (tau <= 0.)
 		return 0.;
 
@@ -218,7 +217,6 @@ void PlasmaInstabilityMiniati2013::initFlow() {
 	flow = new FlowJet1D(d, n, g, g_1, g2, dQ);
 }
 
-
 double PlasmaInstabilityMiniati2013::energyLossTime(const crpropa::Candidate& candidate) const {
 	crpropa::Vector3d position = candidate.current.getPosition();
 	double z = candidate.getRedshift();
@@ -230,6 +228,7 @@ double PlasmaInstabilityMiniati2013::energyLossTime(const crpropa::Candidate& ca
 	double lf = flow->getMeanLorentzFactor(position, z);
 	double ilf = flow->getMeanInverseLorentzFactor(position, z);
 	double dTh = flow->getAngularSpread(position, z);
+
 	return 1.5e9 * crpropa::year / (n / 2e-8 / crpropa::ccm) * (ilf / 1e-4) * (lf / 1e5) * crpropa::pow_integer<2>(dTh / 1e-4) * (T / 3e3);
 }
 

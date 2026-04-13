@@ -44,7 +44,7 @@ class PlasmaInstability : public crpropa::Module {
 		crpropa::ref_ptr<MediumTemperature> getMediumTemperature() const;
 		void process(crpropa::Candidate* candidate) const;
 		double computeEnergyLossPerLength(crpropa::Candidate* candidate) const;
-		virtual double energyLossTime(crpropa::Candidate* candidate) const = 0;
+		virtual double energyLossTime(const crpropa::Candidate& candidate) const = 0;
 };
 
 using PlasmaInstabilityPtr = std::unique_ptr<PlasmaInstability>;
@@ -136,7 +136,7 @@ class PlasmaInstabilityMiniati2013 : public PlasmaInstability {
 		std::string filename = "../../data/miniati2013.txt";
 
 	public:
-		// using PlasmaInstability::PlasmaInstability;
+		using PlasmaInstability::PlasmaInstability;
 		PlasmaInstabilityMiniati2013();
 		void initFlow();
 		double energyLossTime(const crpropa::Candidate& candidate) const;
