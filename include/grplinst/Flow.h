@@ -34,8 +34,8 @@ namespace grplinst {
  */
 class Flow : public crpropa::Referenced {
 	protected:
-		crpropa::ref_ptr<crpropa::EMPairProduction> pairProduction;
-		crpropa::ref_ptr<crpropa::EMInverseComptonScattering> inverseCompton;
+		crpropa::ref_ptr<crpropa::EMPairProduction> pairProduction = nullptr;
+		crpropa::ref_ptr<crpropa::EMInverseComptonScattering> inverseCompton = nullptr;
 		crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0);
 		double luminosity = 1.;
 
@@ -106,6 +106,24 @@ class Flow : public crpropa::Referenced {
 		 */
 		virtual double getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
 
+		/**
+		 * @brief Gets the mean squared Lorentz factor of the flow at a given position and redshift.
+		 * @param position The position vector where the mean squared Lorentz factor is queried.
+		 * @param redshift The redshift at which the mean squared Lorentz factor is evaluated (default is 0).
+		 * @param lorentzFactorParticle The Lorentz factor of the particle (default is 1).
+		 * @return The mean squared Lorentz factor of the flow.
+		 */
+		virtual double getMeanLorentzFactorSquared(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
+
+		/**
+		 * @brief Gets the beam angular spread of the flow at a given position and redshift.
+		 * @param position The position vector where the beam angular spread is queried.
+		 * @param redshift The redshift at which the beam angular spread is evaluated (default is 0).
+		 * @param lorentzFactorParticle The Lorentz factor of the particle (default is 1).
+		 * @return The beam angular spread of the flow.
+		 */
+		virtual double getAngularSpread(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const = 0;
+
 	// protected:
 		// double getPairProductionMeanFreePath(double energy, double redshift = 0) const;
 };
@@ -165,6 +183,8 @@ class FlowHomogeneous : public Flow {
 		// Optional helper: density as a function of particle energy (kept for compatibility)
 		double getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 		double getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getMeanLorentzFactorSquared(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getAngularSpread(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 
 
 		/**  
@@ -195,17 +215,25 @@ class FlowHomogeneous : public Flow {
  * @class FlowJet1D
  * @brief Implementation of a 1D jet flow with profiles defined along the jet axis.
  * The FlowJet1D class provides an implementation of the Flow interface for a one-dimensional jet structure.
- * It allows defining profiles for density, Lorentz factor, and inverse Lorentz factor along the jet axis.
- * 
+ * It allows defining profiles, along the jet axis, for:
+ *   - density
+ *   - Lorentz factor <Γ>
+ *   - inverse Lorentz factor <1/Γ>
+ *   - spread of the Lorentz factor distribution <Γ^2>/<Γ> 
+ *   - beam angular spread Δθ
+ * Note all of these properties are used; just the infrastructure is implemented.
  * NOTE: This class has not been tested.
  */
 class FlowJet1D : public Flow {
 	protected:
-		double densityNormalisation = 1.;
 		std::vector<double> distance;
 		std::vector<double> densityProfile;
 		std::vector<double> meanLorentzFactor;
 		std::vector<double> meanInverseLorentzFactor;
+		std::vector<double> meanLorentzFactorSquared;
+		std::vector<double> angularSpread;
+		double densityNormalisation = 1.;
+		bool interpolateLog = true;
 
 	public:
 		/**
@@ -214,20 +242,13 @@ class FlowJet1D : public Flow {
 		 * @param beamDensity Density values corresponding to distances.
 		 * @param lorentzFactor Mean Lorentz factor values corresponding to distances.
 		 * @param inverseLorentzFactor Mean inverse Lorentz factor values corresponding to distances.
+		 * @param meanLorentzFactorSquared Mean Lorentz factor squared values corresponding to distances.
+		 * @param angularSpread Beam angular spread values corresponding to distances.
 		 * @param densityNorm Global density normalisation factor (default 1).
-		 * @param centre Origin/centre of the jet (default: (0,0,0)).
+		 * @param centre Origin/centre of the jet (default: (0,0,0))
+		 * @param interpolateLog Whether to interpolate profiles logarithmically (default: true).
 		 */
-		FlowJet1D(const std::vector<double>& distances, const std::vector<double>& beamDensity, const std::vector<double>& lorentzFactor, const std::vector<double>& inverseLorentzFactor, double densityNorm = 1, crpropa::Vector3d centre = crpropa::Vector3d(0, 0, 0));
-
-		/**
-		 * @brief Construct a FlowJet1D from a data file.
-		 * @param filename Path to the input file containing the profiles.
-		 * @param densityNormalisation Global density normalisation factor (default 1).
-		 * @param origin Origin/centre of the jet (default: (0,0,0)).
-		 * 
-		 * The input file should contain columns with distance, density, Lorentz factor, and inverse Lorentz factor values.
-		 */
-		FlowJet1D(const std::string &filename, double densityNormalisation = 1, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0));
+		FlowJet1D(const std::vector<double>& distances, const std::vector<double>& beamDensity, const std::vector<double>& lorentzFactor, const std::vector<double>& inverseLorentzFactor, const std::vector<double>& meanLorentzFactorSquared, const std::vector<double>& angularSpread, double densityNorm = 1, crpropa::Vector3d centre = crpropa::Vector3d(0, 0, 0), bool interpolateLog = true);
 
 		/** @brief Default constructor (densityNorm = 1, origin = (0,0,0)). 
 		 */
@@ -263,6 +284,25 @@ class FlowJet1D : public Flow {
 		 */
 		void setInverseLorentzFactorProfile(const std::vector<double>& inverseLorentzFactor);
 
+		/**
+		 * @brief Set the mean Lorentz factor squared profile along the jet axis.
+		 * @param meanLorentzFactorSquared Vector of mean Lorentz factor squared values.
+		 */
+		void setMeanLorentzFactorSquaredProfile(const std::vector<double>& meanLorentzFactorSquared);
+
+		/**
+		 * @brief Set the beam angular spread profile along the jet axis.
+		 * @param angularSpread Vector of beam angular spread values.
+		 */		
+		void setAngularSpreadProfile(const std::vector<double>& angularSpread);
+
+
+		/**
+		 * @brief Set whether to interpolate profiles logarithmically.
+		 * @param interpolateLog True to interpolate logarithmically, false for linear interpolation.
+		 */
+		void setInterpolateLog(bool interpolateLog);
+
 		/** 
 		 * @brief Get the global density normalisation.
 		 * @return The multiplicative normalisation factor.
@@ -293,10 +333,24 @@ class FlowJet1D : public Flow {
 		 */
 		std::vector<double> getInverseLorentzFactorProfile() const;
 
+		/** 
+		 * @brief Get the mean Lorentz factor squared profile along the jet axis.
+		 * @return Vector of mean Lorentz factor squared values.
+		 */
+		std::vector<double> getMeanLorentzFactorSquaredProfile() const;
+
+		/** 
+		 * @brief Get the beam angular spread profile along the jet axis.
+		 * @return Vector of beam angular spread values.
+		 */
+		std::vector<double> getAngularSpreadProfile() const;
+
 		/**  */
 		double getDensity(double energy, const crpropa::Vector3d& position, double redshift = 0) const;
 		double getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 		double getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getMeanLorentzFactorSquared(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
+		double getAngularSpread(const crpropa::Vector3d& position, double redshift = 0, double lorentzFactorParticle = 1) const;
 };
 
 

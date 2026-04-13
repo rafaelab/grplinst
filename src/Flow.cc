@@ -52,7 +52,6 @@ FlowHomogeneous::FlowHomogeneous(double L, crpropa::Vector3d centre) {
 FlowHomogeneous::FlowHomogeneous() {
 }
 
-
 double FlowHomogeneous::getDensity(double energy, const crpropa::Vector3d& position, double redshift) const {
 	// pair-production mean free path on EBL (Broderick+2012 eq. 1), photon energy = 2 * electron energy
 	// factor 0.5 in energy comes from the average energy of the parent
@@ -76,6 +75,14 @@ double FlowHomogeneous::getMeanInverseLorentzFactor(const crpropa::Vector3d& pos
 	return 1. / lorentzFactorParticle / (1 + redshift);
 }
 
+double FlowHomogeneous::getMeanLorentzFactorSquared(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
+	return pow(lorentzFactorParticle * (1 + redshift), 2);
+}
+
+double FlowHomogeneous::getAngularSpread(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
+	return 1. / (lorentzFactorParticle * (1 + redshift));
+}
+
 // double FlowHomogeneous::estimateBeamDensity(double E, double z) const {
 // 	return 3.7e-16 * pow((1. + z) / 2., 9.5) * E * (luminosity / 1e38) * (E / crpropa::TeV);
 // 	// double d = crpropa::redshift2LightTravelDistance(z);
@@ -88,8 +95,8 @@ double FlowHomogeneous::getMeanInverseLorentzFactor(const crpropa::Vector3d& pos
 /*                                  FlowJet1D                                */
 /*****************************************************************************/
 
-FlowJet1D::FlowJet1D(const std::vector<double>& distances, const std::vector<double>& beamDensity, const std::vector<double>& lorentzFactor, const std::vector<double>& inverseLorentzFactor, double densityNorm, crpropa::Vector3d centre) {
-	if ((beamDensity.size() != distances.size()) or (lorentzFactor.size() != distances.size()) or (inverseLorentzFactor.size() != distances.size())) {
+FlowJet1D::FlowJet1D(const std::vector<double>& distances, const std::vector<double>& beamDensity, const std::vector<double>& lorentzFactor, const std::vector<double>& inverseLorentzFactor, const std::vector<double>& meanLorentzFactorSquared, const std::vector<double>& angularSpread, double densityNorm, crpropa::Vector3d centre, bool interpolateLog) {
+	if ((beamDensity.size() != distances.size()) or (lorentzFactor.size() != distances.size()) or (inverseLorentzFactor.size() != distances.size()) or (meanLorentzFactorSquared.size() != distances.size()) or (angularSpread.size() != distances.size())) {
 		throw std::length_error("Vectors containing beam profile information should have the same size.");
 	}
 	setOrigin(centre);
@@ -98,38 +105,9 @@ FlowJet1D::FlowJet1D(const std::vector<double>& distances, const std::vector<dou
 	setDensityProfile(beamDensity);
 	setLorentzFactorProfile(lorentzFactor);
 	setInverseLorentzFactorProfile(inverseLorentzFactor);
-	
-}
-
-FlowJet1D::FlowJet1D(const std::string &filename, double densityNorm, crpropa::Vector3d centre) {
-	setOrigin(centre);
-	setDensityNormalisation(densityNorm);
-
-	// read file and store jet profile
-	std::ifstream infile(filename.c_str());
-	if (! infile.good()) {
-		throw std::runtime_error("FlowJet1D could not open file " + filename + ".");
-	}
-	std::string line;
-	while (std::getline(infile, line)) {
-		auto firstNon = line.find_first_not_of(" \t");
-		if (firstNon == std::string::npos or line[firstNon] == '#') 
-			continue;
-		std::stringstream stream(line);
-
-		double d;
-		double n;
-		double gamma;
-		double gamma_1;
-		stream >> d >> n >> gamma >> gamma_1;
-
-		n *= densityNorm;
-	
-		distance.push_back(d);
-		densityProfile.push_back(n);
-		meanLorentzFactor.push_back(gamma);
-		meanInverseLorentzFactor.push_back(gamma_1);
-	}
+	setMeanLorentzFactorSquaredProfile(meanLorentzFactorSquared);
+	setAngularSpreadProfile(angularSpread);
+	setInterpolateLog(interpolateLog);
 }
 
 FlowJet1D::FlowJet1D() {
@@ -167,6 +145,22 @@ void FlowJet1D::setDensityProfile(const std::vector<double>& density) {
 	}
 }
 
+void FlowJet1D::setMeanLorentzFactorSquaredProfile(const std::vector<double>& lfSquared) {
+	for (size_t i = 0; i < lfSquared.size(); i++) {
+		meanLorentzFactorSquared.push_back(lfSquared[i]);
+	}
+}
+
+void FlowJet1D::setAngularSpreadProfile(const std::vector<double>& as) {
+	for (size_t i = 0; i < as.size(); i++) {
+		angularSpread.push_back(as[i]);
+	}
+}
+
+void FlowJet1D::setInterpolateLog(bool b) {
+	interpolateLog = b;
+}
+
 std::vector<double> FlowJet1D::getDistanceProfile() const {
 	return distance;
 }
@@ -183,21 +177,53 @@ std::vector<double> FlowJet1D::getInverseLorentzFactorProfile() const {
 	return meanInverseLorentzFactor;
 }
 
+std::vector<double> FlowJet1D::getMeanLorentzFactorSquaredProfile() const {
+	return meanLorentzFactorSquared;
+}
+
+std::vector<double> FlowJet1D::getAngularSpreadProfile() const {
+	return angularSpread;
+}
+
 double FlowJet1D::getDensity(double energy, const crpropa::Vector3d& position, double redshift) const {
-	double n = crpropa::interpolate((position - origin).getR(), distance, densityProfile);
+	double x = (position - origin).getR();
+	if (interpolateLog)
+		x = log10(x);
+	double n = crpropa::interpolate(x, distance, densityProfile);
 	return n * crpropa::pow_integer<3>(1 + redshift);
 }
 
 double FlowJet1D::getMeanLorentzFactor(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
-	double lf = crpropa::interpolate((position - origin).getR(), distance, meanLorentzFactor);
+	double x = (position - origin).getR();
+	if (interpolateLog)
+		x = log10(x);
+	double lf = crpropa::interpolate(x, distance, meanLorentzFactor);
 	return lf * (1 + redshift);
 }
 
 double FlowJet1D::getMeanInverseLorentzFactor(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
-	double ilf = crpropa::interpolate((position - origin).getR(), distance, meanInverseLorentzFactor);
+	double x = (position - origin).getR();
+	if (interpolateLog)
+		x = log10(x);
+	double ilf = crpropa::interpolate(x, distance, meanInverseLorentzFactor);
 	return ilf / (1 + redshift);
 }
 
+double FlowJet1D::getMeanLorentzFactorSquared(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
+	double x = (position - origin).getR();
+	if (interpolateLog)
+		x = log10(x);
+	double lf2 = crpropa::interpolate(x, distance, meanLorentzFactorSquared);
+	return lf2 * pow(1 + redshift, 2);
+}
+
+double FlowJet1D::getAngularSpread(const crpropa::Vector3d& position, double redshift, double lorentzFactorParticle) const {
+	double x = (position - origin).getR();
+	if (interpolateLog)
+		x = log10(x);
+	double as = crpropa::interpolate(x, distance, angularSpread);
+	return as;
+}
 
 
 
