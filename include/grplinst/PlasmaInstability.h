@@ -32,6 +32,7 @@ class PlasmaInstability : public crpropa::Module {
 		double limit;
 
 	public:
+		PlasmaInstability() = default;
 		PlasmaInstability(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
 		virtual ~PlasmaInstability() = default;
 		void setFlowProperties(crpropa::ref_ptr<Flow> flow);
@@ -43,7 +44,7 @@ class PlasmaInstability : public crpropa::Module {
 		crpropa::ref_ptr<MediumTemperature> getMediumTemperature() const;
 		void process(crpropa::Candidate* candidate) const;
 		double computeEnergyLossPerLength(crpropa::Candidate* candidate) const;
-		virtual double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const = 0;
+		virtual double energyLossTime(crpropa::Candidate* candidate) const = 0;
 };
 
 using PlasmaInstabilityPtr = std::unique_ptr<PlasmaInstability>;
@@ -62,7 +63,7 @@ using PlasmaInstabilityPtr = std::unique_ptr<PlasmaInstability>;
 class PlasmaInstabilityBroderick2012 : public PlasmaInstability {
 	public:
 		using PlasmaInstability::PlasmaInstability;
-		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+		double energyLossTime(const crpropa::Candidate& candidate) const;
 };
 
 /**
@@ -72,7 +73,7 @@ class PlasmaInstabilityBroderick2012 : public PlasmaInstability {
 class PlasmaInstabilitySchlickeiser2012 : public PlasmaInstability {
 	public:
 		using PlasmaInstability::PlasmaInstability;
-		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+		double energyLossTime(const crpropa::Candidate& candidate) const;
 };
 
 /**
@@ -82,7 +83,7 @@ class PlasmaInstabilitySchlickeiser2012 : public PlasmaInstability {
 class PlasmaInstabilitySironi2014 : public PlasmaInstability {
 	public:
 		using PlasmaInstability::PlasmaInstability;
-		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+		double energyLossTime(const crpropa::Candidate& candidate) const;
 };
 
 /**
@@ -92,7 +93,7 @@ class PlasmaInstabilitySironi2014 : public PlasmaInstability {
 class PlasmaInstabilityVafin2018 : public PlasmaInstability {
 	public:
 		using PlasmaInstability::PlasmaInstability;
-		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+		double energyLossTime(const crpropa::Candidate& candidate) const;
 };
 
 /**
@@ -102,7 +103,7 @@ class PlasmaInstabilityVafin2018 : public PlasmaInstability {
 class PlasmaInstabilityBret2010TwoStream : public PlasmaInstability {
 	public:
 		using PlasmaInstability::PlasmaInstability;
-		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+		double energyLossTime(const crpropa::Candidate& candidate) const;
 };
 
 /**
@@ -112,7 +113,7 @@ class PlasmaInstabilityBret2010TwoStream : public PlasmaInstability {
 class PlasmaInstabilityBret2010Filamentation : public PlasmaInstability {
 	public:
 		using PlasmaInstability::PlasmaInstability;
-		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+		double energyLossTime(const crpropa::Candidate& candidate) const;
 };
 
 /**
@@ -122,7 +123,23 @@ class PlasmaInstabilityBret2010Filamentation : public PlasmaInstability {
 class PlasmaInstabilityShalaby2020 : public PlasmaInstability {
 	public:
 		using PlasmaInstability::PlasmaInstability;
-		double energyLossTime(double energy, double beamDensity, double mediumDensity, double mediumTemperature) const override;
+		double energyLossTime(const crpropa::Candidate& candidate) const;
+};
+
+/**
+ * @brief Miniati & Elyiv 2013 model for plasma instabilities.
+ * Miniati and Elyiv. Astrophys. J. 770 (2013) 54. arXiv:1208.1761
+ */
+class PlasmaInstabilityMiniati2013 : public PlasmaInstability {
+	protected:
+		crpropa::ref_ptr<Flow> flow;
+		std::string filename = "../../data/miniati2013.txt";
+
+	public:
+		// using PlasmaInstability::PlasmaInstability;
+		PlasmaInstabilityMiniati2013();
+		void initFlow();
+		double energyLossTime(const crpropa::Candidate& candidate) const;
 };
 
 
