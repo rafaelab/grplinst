@@ -1,5 +1,5 @@
-#ifndef GRPLINST_AUXILIARY_H
-#define GRPLINST_AUXILIARY_H
+#ifndef GRPLINST_COMMON_H
+#define GRPLINST_COMMON_H
 
 #include <cassert>
 #include <cstdarg>
