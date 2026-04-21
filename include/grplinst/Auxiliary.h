@@ -7,7 +7,14 @@
 #include <vector>
 
 
+namespace grplinst {
 
+
+static const double u_CMB = 4.178e-14; 
+static const double mec2 = crpropa::mass_electron * crpropa::c_squared;
+
+
+}
 
 /**
  */
