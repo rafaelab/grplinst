@@ -2,7 +2,7 @@
 #define GRPLINST_H
 
 
-#include "grplinst/Auxiliary.h"
+#include "grplinst/Common.h"
 #include "grplinst/Flow.h"
 #include "grplinst/Geometry.h"
 #include "grplinst/Medium.h"
