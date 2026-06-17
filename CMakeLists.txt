@@ -149,11 +149,12 @@ set_target_properties(grplinst PROPERTIES OUTPUT_NAME "_grplinst")
 # 	enable_testing()
 # endif(ENABLE_TESTING)
 
-# set(grplinst_DATA_PATH ${CMAKE_CURRENT_SOURCE_DIR}/data)
+# set(GRPLINST_DATA_PATH ${CMAKE_CURRENT_SOURCE_DIR}/data)
 
 
 # Install
-add_definitions(-Dgrplinst_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+add_definitions(-DGRPLINST_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+add_definitions(-DGRPLINST_DATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/data")
 install(TARGETS grplinst DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/ DESTINATION include FILES_MATCHING PATTERN "*.h")
