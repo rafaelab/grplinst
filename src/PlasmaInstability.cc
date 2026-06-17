@@ -6,20 +6,19 @@ namespace grplinst {
 
 
 
-
 /*****************************************************************************/
 /*                             PlasmaInstability                             */
 /*****************************************************************************/
 
 
-PlasmaInstability::PlasmaInstability(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit) {
+PlasmaInstability::PlasmaInstability(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double efficiency, double limit) {
 	setFlowProperties(flow);
 	setMediumDensity(density);
 	setMediumTemperature(temperature);
 	setLimit(limit);
+	setEfficiencyFactor(efficiency);
 	setDescription("PlasmaInstability::PlasmaInstability");
 }
-
 
 void PlasmaInstability::setFlowProperties(crpropa::ref_ptr<Flow> flow) {
 	flowProperties = flow;
@@ -31,6 +30,18 @@ void PlasmaInstability::setMediumDensity(crpropa::ref_ptr<MediumDensity> density
 
 void PlasmaInstability::setMediumTemperature(crpropa::ref_ptr<MediumTemperature> temperature) {
 	mediumTemperature = temperature;
+}
+
+void PlasmaInstability::setEfficiencyFactor(double eff) {
+	if (eff < 0.) {
+		KISS_LOG_WARNING << "Efficiency factor cannot be negative. Setting to 0.";
+		efficiency = 0.;
+	} else if (eff > 1.) {
+		KISS_LOG_WARNING << "Efficiency factor cannot be greater than 1. Setting to 1.";
+		efficiency = 1.;
+	} else {
+		efficiency = eff;
+	}
 }
 
 void PlasmaInstability::setLimit(double l) {
@@ -49,6 +60,21 @@ crpropa::ref_ptr<MediumTemperature> PlasmaInstability::getMediumTemperature() co
 	return mediumTemperature;
 }
 
+double PlasmaInstability::getEfficiencyFactor() const {
+	return efficiency;
+}
+
+double PlasmaInstability::getLimit() const {
+	return limit;
+}
+
+double PlasmaInstability::computeEnergyLossPerLength(const crpropa::Candidate& candidate) const {
+	double tau = energyLossTime(candidate);
+	if (tau <= 0.)
+		return 0;
+	return efficiency * candidate.current.getEnergy() / (crpropa::c_light * tau);
+}
+
 void PlasmaInstability::process(crpropa::Candidate* candidate) const {
 	int id = candidate->current.getId();
 	if (fabs(id) != 11)
@@ -58,21 +84,16 @@ void PlasmaInstability::process(crpropa::Candidate* candidate) const {
 	double E = candidate->current.getEnergy() * (1 + z);
 	double dx = candidate->getCurrentStep() / (1 + z);
 
-	double dEdx = computeEnergyLossPerLength(candidate);
+
+	double dEdx = computeEnergyLossPerLength(*candidate);
 	if (dEdx <= 0) // prevent overshooting
 		return;
-	
+
 	double Enew = std::max(0.0, E - dEdx * dx);
+
+
 	candidate->current.setEnergy(Enew / (1 + z));
 	candidate->limitNextStep(limit * E / dEdx);
-}
-
-double PlasmaInstability::computeEnergyLossPerLength(crpropa::Candidate* candidate) const {
-	double tau = energyLossTime(*candidate);
-	if (tau <= 0.)
-		return 0.;
-
-	return candidate->current.getEnergy() / (crpropa::c_light * tau);
 }
 
 
@@ -178,58 +199,29 @@ double PlasmaInstabilityShalaby2020::energyLossTime(const crpropa::Candidate& ca
 }
 
 PlasmaInstabilityMiniati2013::PlasmaInstabilityMiniati2013() : PlasmaInstability() {
-	initFlow();
 }
 
-void PlasmaInstabilityMiniati2013::initFlow() {
-	std::ifstream inputFile(filename.c_str());
-
-	if (! inputFile.good())
-		throw std::runtime_error("PlasmaInstabilityMiniati2013: could not open file " + filename + ".");
-
-	std::vector<double> d, n, g, g_1, g2, dQ;
-
-	while (inputFile.good()) {
-		if (inputFile.peek() != '#') {
-			double _d, _n, _g, _g_1, _g2, _dQ;
-			inputFile >> _d >> _n >> _g >> _g_1 >> _g2 >> _dQ;
-			
-			if (inputFile.good()) {
-				_d = log10(_d * crpropa::Mpc);
-				_n = _n / crpropa::ccm;
-				_g = _g * 1e5;
-				_g_1 = _g_1 * 1e4;
-				_g2 = _g2 * 1e6 * _g;
-				_dQ = _dQ * 1e-5;
-				d.push_back(_d);
-				n.push_back(_n);
-				g.push_back(_g);
-				g_1.push_back(_g_1);
-				g2.push_back(_g2);
-				dQ.push_back(_dQ);
-
-			}
-		}
-		inputFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-	}
-	inputFile.close();
-
-	flow = new FlowJet1D(d, n, g, g_1, g2, dQ);
+PlasmaInstabilityMiniati2013::PlasmaInstabilityMiniati2013(double luminosity, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, crpropa::Vector3d origin, double efficiency, double limit) : PlasmaInstability() {
+	crpropa::ref_ptr<Flow> flow = createFlowMiniati2013(luminosity, origin);
+	setFlowProperties(flow);
+	setMediumDensity(density);
+	setMediumTemperature(temperature);
+	setEfficiencyFactor(efficiency);
+	setLimit(limit);
 }
 
 double PlasmaInstabilityMiniati2013::energyLossTime(const crpropa::Candidate& candidate) const {
 	crpropa::Vector3d position = candidate.current.getPosition();
 	double z = candidate.getRedshift();
 	double E = candidate.current.getEnergy() * (1 + z);
+	double lf = E / mec2;
 
-	double n = mediumDensity->getDensity(position, z);
 	double nb = flowProperties->getDensity(E, position, z);
+	double n = mediumDensity->getDensity(position, z);
 	double T = mediumTemperature->getTemperature(position, z);
-	double lf = flow->getMeanLorentzFactor(position, z);
-	double ilf = flow->getMeanInverseLorentzFactor(position, z);
-	double dTh = flow->getAngularSpread(position, z);
-
-	return 1.5e9 * crpropa::year / (n / 2e-8 / crpropa::ccm) * (ilf / 1e-4) * (lf / 1e5) * crpropa::pow_integer<2>(dTh / 1e-4) * (T / 3e3);
+	
+	
+	return 1. / maximumLinearGrowthFrequency(nb, n, lf);
 }
 
 
@@ -237,9 +229,9 @@ double PlasmaInstabilityMiniati2013::energyLossTime(const crpropa::Candidate& ca
 /*                         Additional Functions                              */
 /*****************************************************************************/
 
-double maximumLinearGrowthFrequency(double beamDensity, double mediumDensity, double inverseLorentzFactor, int id) {
+double maximumLinearGrowthFrequency(double beamDensity, double mediumDensity, double lorentzFactor, int id) {
 	double wp =  plasmaFrequency(mediumDensity, id);
-	return wp * beamDensity / mediumDensity * inverseLorentzFactor;
+	return wp * beamDensity / mediumDensity * (1. / lorentzFactor);
 }
 
 double plasmaFrequency(double density, int id) {
@@ -259,7 +251,7 @@ double plasmaFrequency(double density, int id) {
 		std::cerr << "Mass undefined for particle with id: " << id << std::endl;
 	}
 
-	return sqrt(density * q * q / m / crpropa::epsilon0);
+	return sqrt(density * q * q / (m * crpropa::epsilon0));
 }
 
 

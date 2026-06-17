@@ -11,8 +11,10 @@
 #include <crpropa/Referenced.h>
 #include <crpropa/Units.h>
 
-#include "grplinst/Medium.h"
+#include "grplinst/Common.h"
 #include "grplinst/Flow.h"
+#include "grplinst/Medium.h"
+
 
 
 namespace grplinst {
@@ -30,20 +32,24 @@ class PlasmaInstability : public crpropa::Module {
 		crpropa::ref_ptr<MediumDensity> mediumDensity;
 		crpropa::ref_ptr<MediumTemperature> mediumTemperature;
 		double limit;
+		double efficiency;
 
 	public:
 		PlasmaInstability() = default;
-		PlasmaInstability(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double limit = 0.1);
+		PlasmaInstability(crpropa::ref_ptr<Flow> flow, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, double efficiency = 1., double limit = 0.1);
 		virtual ~PlasmaInstability() = default;
 		void setFlowProperties(crpropa::ref_ptr<Flow> flow);
 		void setMediumDensity(crpropa::ref_ptr<MediumDensity> density);
 		void setMediumTemperature(crpropa::ref_ptr<MediumTemperature> temperature);
 		void setLimit(double limit);
+		void setEfficiencyFactor(double efficiency);
 		crpropa::ref_ptr<MediumDensity> getMediumDensity() const;
 		crpropa::ref_ptr<Flow> getFlowProperties() const;
 		crpropa::ref_ptr<MediumTemperature> getMediumTemperature() const;
+		double getLimit() const;
+		double getEfficiencyFactor() const;
+		double computeEnergyLossPerLength(const crpropa::Candidate& candidate) const;
 		void process(crpropa::Candidate* candidate) const;
-		double computeEnergyLossPerLength(crpropa::Candidate* candidate) const;
 		virtual double energyLossTime(const crpropa::Candidate& candidate) const = 0;
 };
 
@@ -131,14 +137,10 @@ class PlasmaInstabilityShalaby2020 : public PlasmaInstability {
  * Miniati and Elyiv. Astrophys. J. 770 (2013) 54. arXiv:1208.1761
  */
 class PlasmaInstabilityMiniati2013 : public PlasmaInstability {
-	protected:
-		crpropa::ref_ptr<Flow> flow;
-		std::string filename = "../../data/miniati2013.txt";
-
 	public:
-		using PlasmaInstability::PlasmaInstability;
+		// using PlasmaInstability::PlasmaInstability;
 		PlasmaInstabilityMiniati2013();
-		void initFlow();
+		PlasmaInstabilityMiniati2013(double luminosity, crpropa::ref_ptr<MediumDensity> density, crpropa::ref_ptr<MediumTemperature> temperature, crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0), double efficiency = 1., double limit = 0.1);
 		double energyLossTime(const crpropa::Candidate& candidate) const;
 };
 
@@ -166,7 +168,6 @@ double plasmaFrequency(double density, int id = 11);
  * @return Maximum linear growth frequency in Hz.
  */
 double maximumLinearGrowthFrequency(double beamDensity, double mediumDensity, double lorentzFactor, int id = 11);
-
 
 
 } // namespace grplinst
