@@ -20,6 +20,7 @@ temperature = MediumTemperatureHomogeneous(T)
 density = MediumDensityHomogeneous(nIGM)
 beam = FlowHomogeneous(L, Vector3d(0, 0, 0))
 plinst = PlasmaInstabilityBroderick2012(beam, density, temperature)
+modelLabel = 'B12'
 
 
 photons = electrons = True
@@ -27,22 +28,22 @@ ppEBL = EMPairProduction(ebl, electrons)
 ppCMB = EMPairProduction(cmb, electrons)
 icEBL = EMInverseComptonScattering(ebl, photons)
 icCMB = EMInverseComptonScattering(cmb, photons)
-# plinst = PlasmaInstability(model, beam, density, temperature)
 redshift = Redshift()
-processes = [redshift, ppEBL, ppCMB, icEBL, icCMB, plinst]
+processes = [redshift, ppEBL, ppCMB, plinst, icEBL, icCMB]
 
 maxTrajectory = MaximumTrajectoryLength(4000 * Mpc)
 minEnergy = MinimumEnergy(1e9 * eV)
-breakCondition = [maxTrajectory, minEnergy]
+breakConditions = [maxTrajectory, minEnergy]
 
 source = Source()
-source.add(SourcePowerLawSpectrum(1e9 * eV, 1e13 * eV, -1))
+source.add(SourcePowerLawSpectrum(1e9 * eV, 1e14 * eV, -1))
 source.add(SourceParticleType(22))
 source.add(SourcePosition(Vector3d(redshift2ComovingDistance(z), 0, 0)))
 source.add(SourceRedshift1D())
 source.add(SourceDirection(Vector3d(-1, 0, 0)))
 
-output = TextOutput('test.txt', Output.Event1D)
+filename = 'sim-%s-L_%.0eW-n_%.0e_m3-T_%.0eK-z_%4.3f-run_%03i.txt' % (modelLabel, L, nIGM, T, z, 0)
+output = TextOutput(filename, Output.Event1D)
 output.setEnergyScale(eV)
 output.set(output.WeightColumn, True)
 
@@ -54,7 +55,7 @@ sim = ModuleList()
 sim.add(SimplePropagation(1e-3 * kpc, 10 * Mpc))
 for p in processes:
 	sim.add(p)
-for bc in breakCondition:
+for bc in breakConditions:
 	sim.add(bc)
 sim.add(observer)
 
