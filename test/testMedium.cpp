@@ -6,7 +6,9 @@ using namespace grplinst;
 using namespace crpropa;
 
 
-// ─── MediumTemperatureHomogeneous ────────────────────────────────────────────
+///////////////////////////////////////////////////////////////////////////////
+//                       MediumTemperatureHomogeneous                        //
+///////////////////////////////////////////////////////////////////////////////
 
 TEST(MediumTemperatureHomogeneous, Constructor) {
 	EXPECT_NO_THROW(MediumTemperatureHomogeneous(1e4));
@@ -61,8 +63,9 @@ TEST(MediumTemperatureHomogeneous, GetVelocityDependsOnRedshift) {
 	EXPECT_NEAR(v1 / v0, std::sqrt(2.0), 1e-10);  // sqrt((1+1)/(1+0))
 }
 
-
-// ─── MediumDensityHomogeneous ─────────────────────────────────────────────────
+///////////////////////////////////////////////////////////////////////////////
+//                       MediumDensityHomogeneous                        //
+///////////////////////////////////////////////////////////////////////////////
 
 TEST(MediumDensityHomogeneous, Constructor) {
 	EXPECT_NO_THROW(MediumDensityHomogeneous(1e-1));
@@ -83,7 +86,6 @@ TEST(MediumDensityHomogeneous, GetDensityAtZeroRedshift) {
 
 TEST(MediumDensityHomogeneous, GetDensityScalesWithRedshift) {
 	MediumDensityHomogeneous med(1e-1);
-	// n(z) = n0 * (1 + z)^3, at z=1: 0.1 * 2^3 = 0.8
 	double n = med.getDensity(Vector3d(0, 0, 0), 1.);
 	EXPECT_DOUBLE_EQ(n, 0.8);
 }

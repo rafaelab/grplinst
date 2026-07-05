@@ -7,7 +7,9 @@ using namespace grplinst;
 using namespace crpropa;
 
 
-// ─── FlowHomogeneous ─────────────────────────────────────────────────────────
+///////////////////////////////////////////////////////////////////////////////
+//                             FlowHomogeneous                               //
+///////////////////////////////////////////////////////////////////////////////
 
 TEST(FlowHomogeneous, DefaultConstructor) {
 	EXPECT_NO_THROW(FlowHomogeneous());
@@ -66,7 +68,9 @@ TEST(FlowHomogeneous, GetDensityScalesWithLuminosity) {
 }
 
 
-// ─── FlowJet1D ───────────────────────────────────────────────────────────────
+///////////////////////////////////////////////////////////////////////////////
+//                                FlowJet1D                                  //
+///////////////////////////////////////////////////////////////////////////////
 
 TEST(FlowJet1D, DefaultConstructor) {
 	EXPECT_NO_THROW(FlowJet1D());
@@ -135,7 +139,9 @@ TEST(FlowJet1D, GetDensityUsesOriginOffset) {
 }
 
 
-// ─── createFlowMiniati2013 ───────────────────────────────────────────────────
+///////////////////////////////////////////////////////////////////////////////
+//                       FlowJet1D - Miniati 2013 model                      //
+///////////////////////////////////////////////////////////////////////////////
 
 TEST(FlowMiniati2013, ReturnsNonNull) {
 	auto flow = createFlowMiniati2013(1e38);
@@ -159,7 +165,7 @@ TEST(FlowMiniati2013, DensityProfileScalesWithLuminosity) {
 	ASSERT_NE(jet1, nullptr);
 	ASSERT_NE(jet2, nullptr);
 
-	// Density values scale linearly with luminosity
+	// density values scale linearly with luminosity
 	EXPECT_NEAR(jet2->getDensityProfile()[0] / jet1->getDensityProfile()[0], 2.0, 1e-10);
 }
 

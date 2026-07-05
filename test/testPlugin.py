@@ -1,290 +1,169 @@
-import sys
-import math
+
 import unittest
+import numpy as np
 
 from crpropa import *
 from grplinst import *
 
 
-def makeElectron(E = 1 * TeV, z = 0.):
-    c = Candidate()
-    c.current.setId(11)
-    c.current.setEnergy(E)
-    c.current.setPosition(Vector3d(0, 0, 0))
-    c.setRedshift(z)
-    return c
+###############################################################################
+#                               test all classes                              #
+###############################################################################
+
+class TestImport(unittest.TestCase):
+
+    def testAllPublicClassesAvailable(self):
+        names = [
+            'FlowHomogeneous', 
+            'FlowJet1D',
+            'MediumTemperatureHomogeneous', 
+            'MediumDensityHomogeneous',
+            'PlasmaInstabilityBroderick2012', 
+            'PlasmaInstabilitySchlickeiser2012',
+            'PlasmaInstabilitySironi2014', 
+            'PlasmaInstabilityVafin2018',
+            'PlasmaInstabilityBret2010TwoStream', 
+            'PlasmaInstabilityBret2010Filamentation',
+            'PlasmaInstabilityShalaby2020', 
+            'PlasmaInstabilityMiniati2013',
+            'plasmaFrequency', 
+            'maximumLinearGrowthFrequency',
+            'createFlowMiniati2013',
+        ]
+        import grplinst
+        for name in names:
+            self.assertTrue(hasattr(grplinst, name), f"grplinst.{name} not found")
 
 
-class TestFlowHomogeneous(unittest.TestCase):
 
-    def testDefaultConstructor(self):
-        FlowHomogeneous()
+###############################################################################
+#                      vector ↔ Python list conversions                       #
+###############################################################################
 
-    def testParameterizedConstructor(self):
-        flow = FlowHomogeneous(1e38, Vector3d(0, 0, 0))
-        self.assertAlmostEqual(flow.getLuminosity(), 1e38)
+class TestVectorConversions(unittest.TestCase):
+    """
+    Verify that std::vector<double> SWIG typemaps accept Python lists and
+    return objects that behave like sequences.
+    """
 
-    def testSetGetLuminosity(self):
-        flow = FlowHomogeneous()
-        flow.setLuminosity(2e40)
-        self.assertAlmostEqual(flow.getLuminosity(), 2e40)
-
-    def testSetGetOrigin(self):
-        flow = FlowHomogeneous()
-        origin = Vector3d(5 * Mpc, 0, 0)
-        flow.setOrigin(origin)
-        self.assertEqual(flow.getOrigin(), origin)
-
-    def testGetDensityPositive(self):
-        flow = FlowHomogeneous(1e38)
-        d = flow.getDensity(1 * TeV, Vector3d(0, 0, 0), 0.)
-        self.assertGreater(d, 0.)
-
-    def testGetDensityScalesWithLuminosity(self):
-        flow1 = FlowHomogeneous(1e38)
-        flow2 = FlowHomogeneous(2e38)
-        d1 = flow1.getDensity(1 * TeV, Vector3d(0, 0, 0), 0.)
-        d2 = flow2.getDensity(1 * TeV, Vector3d(0, 0, 0), 0.)
-        self.assertAlmostEqual(d2 / d1, 2.0, places = 10)
-
-    def testGetDensityChangesWithRedshift(self):
-        flow = FlowHomogeneous(1e38)
-        d0 = flow.getDensity(1 * TeV, Vector3d(0, 0, 0), 0.0)
-        dz = flow.getDensity(1 * TeV, Vector3d(0, 0, 0), 0.5)
-        self.assertNotAlmostEqual(d0, dz)
-
-
-class TestFlowJet1D(unittest.TestCase):
-
-    def testDefaultConstructor(self):
-        FlowJet1D()
-
-    def testParameterizedConstructor(self):
-        dist = [1 * Mpc, 2 * Mpc, 4 * Mpc]
-        dens = [1e-3, 5e-4, 1e-4]
-        flow = FlowJet1D(dist, dens, 1e38)
-        self.assertAlmostEqual(flow.getLuminosity(), 1e38)
-        self.assertEqual(len(flow.getDistanceProfile()), 3)
-        self.assertEqual(len(flow.getDensityProfile()), 3)
-
-    def testMismatchedVectorsRaises(self):
-        with self.assertRaises(Exception):
-            FlowJet1D([1., 2., 3.], [1e-3, 5e-4])
-
-    def testSetGetProfiles(self):
-        flow = FlowJet1D()
+    def testSetProfileFromList(self):
         dist = [0.0, 1.0, 2.0]
         dens = [3.0, 2.0, 1.0]
+        flow = FlowJet1D()
         flow.setDistanceProfile(dist)
         flow.setDensityProfile(dens)
         self.assertEqual(list(flow.getDistanceProfile()), dist)
         self.assertEqual(list(flow.getDensityProfile()), dens)
 
-    def testLinearInterpolation(self):
-        dist = [0.0, 1.0, 2.0, 3.0]
-        dens = [4.0, 3.0, 2.0, 1.0]
+    def testSetProfileFromNumpyArray(self):
+        dist = np.array([0.0, 1.0, 2.0, 3.0])
+        dens = np.array([4.0, 3.0, 2.0, 1.0])
         flow = FlowJet1D(dist, dens, 1.0, Vector3d(0, 0, 0), False)
-        d = flow.getDensity(1 * TeV, Vector3d(1.5, 0, 0), 0.)
-        self.assertAlmostEqual(d, 2.5, places = 10)
+        self.assertEqual(len(flow.getDistanceProfile()), 4)
+        self.assertEqual(len(flow.getDensityProfile()), 4)
 
-    def testRedshiftScaling(self):
-        dist = [0.0, 10.0]
-        dens = [2.0, 1.0]
-        flow = FlowJet1D(dist, dens, 1.0, Vector3d(0, 0, 0), False)
-        d0 = flow.getDensity(1 * TeV, Vector3d(5.0, 0, 0), 0.0)
-        dz = flow.getDensity(1 * TeV, Vector3d(5.0, 0, 0), 1.0)
-        self.assertAlmostEqual(dz / d0, 8.0, places = 10)
-
-
-class TestMediumTemperatureHomogeneous(unittest.TestCase):
-
-    def testConstructor(self):
-        MediumTemperatureHomogeneous(1e4)
-
-    def testGetSetTemperatureValue(self):
-        med = MediumTemperatureHomogeneous(1e4)
-        self.assertAlmostEqual(med.getTemperatureValue(), 1e4)
-        med.setTemperatureValue(2e4)
-        self.assertAlmostEqual(med.getTemperatureValue(), 2e4)
-
-    def testGetTemperatureAtZeroRedshift(self):
-        med = MediumTemperatureHomogeneous(1e4)
-        self.assertAlmostEqual(med.getTemperature(Vector3d(0, 0, 0), 0.), 1e4)
-
-    def testGetTemperatureScalesWithRedshift(self):
-        med = MediumTemperatureHomogeneous(1e4)
-        self.assertAlmostEqual(med.getTemperature(Vector3d(0, 0, 0), 1.), 2e4)
-
-    def testGetTemperatureIsPositionIndependent(self):
-        med = MediumTemperatureHomogeneous(1e4)
-        T1 = med.getTemperature(Vector3d(0, 0, 0), 0.)
-        T2 = med.getTemperature(Vector3d(100 * Mpc, 0, 0), 0.)
-        self.assertAlmostEqual(T1, T2)
-
-    def testGetVelocityForElectronIsPositive(self):
-        med = MediumTemperatureHomogeneous(1e4)
-        v = med.getVelocity(11, Vector3d(0, 0, 0), 0.)
-        self.assertGreater(v, 0.)
-
-    def testGetVelocityScalesWithSqrtTemperature(self):
-        med1 = MediumTemperatureHomogeneous(1e4)
-        med2 = MediumTemperatureHomogeneous(4e4)
-        v1 = med1.getVelocity(11, Vector3d(0, 0, 0), 0.)
-        v2 = med2.getVelocity(11, Vector3d(0, 0, 0), 0.)
-        self.assertAlmostEqual(v2 / v1, 2.0, places = 10)  # sqrt(4) = 2
+    def testConstructorFromNumpyArrayMatchesList(self):
+        distList = [0.0, 1.0, 2.0]
+        densList = [3.0, 2.0, 1.0]
+        distNP = np.array(distList)
+        densNP = np.array(densList)
+        flowList = FlowJet1D(distList, densList, 1.0, Vector3d(0, 0, 0), False)
+        flowNP = FlowJet1D(distNP, densNP, 1.0, Vector3d(0, 0, 0), False)
+        self.assertEqual(
+            list(flowList.getDistanceProfile()),
+            list(flowNP.getDistanceProfile()),
+        )
 
 
-class TestMediumDensityHomogeneous(unittest.TestCase):
 
-    def testConstructor(self):
-        MediumDensityHomogeneous(1e-1)
+###############################################################################
+#                   test directors: sub-classing of virtuals                  #
+###############################################################################
 
-    def testGetSetDensityValue(self):
-        med = MediumDensityHomogeneous(1e-1)
-        self.assertAlmostEqual(med.getDensityValue(), 1e-1)
-        med.setDensityValue(5e-2)
-        self.assertAlmostEqual(med.getDensityValue(), 5e-2)
+class TestDirectorMediumDensity(unittest.TestCase):
+    """
+    SWIG directors let Python override pure-virtual C++ methods.
+    A subclass of MediumDensity that returns a fixed value should be usable
+    wherever a MediumDensity ref_ptr is accepted.
+    """
 
-    def testGetDensityAtZeroRedshift(self):
-        med = MediumDensityHomogeneous(1e-1)
-        self.assertAlmostEqual(med.getDensity(Vector3d(0, 0, 0), 0.), 1e-1)
+    def testPythonSubclassIsAccepted(self):
+        class ConstantDensity(MediumDensity):
+            def getDensity(self, position, redshift = 0.):
+                return 42.0
 
-    def testGetDensityScalesWithRedshift(self):
-        med = MediumDensityHomogeneous(1e-1)
-        n = med.getDensity(Vector3d(0, 0, 0), 1.)
-        self.assertAlmostEqual(n, 0.8)  # 0.1 * (1+1)^3 = 0.8
+        dens = ConstantDensity()
+        temp = MediumTemperatureHomogeneous(1e4)
+        flow = FlowHomogeneous(1e38)
 
-    def testGetDensityIsPositionIndependent(self):
-        med = MediumDensityHomogeneous(1e-1)
-        n1 = med.getDensity(Vector3d(0, 0, 0), 0.)
-        n2 = med.getDensity(Vector3d(100 * Mpc, 0, 0), 0.)
-        self.assertAlmostEqual(n1, n2)
+        # if the director wiring is broken this constructor call will raise
+        pi = PlasmaInstabilityBroderick2012(flow, dens, temp)
+        self.assertIsNotNone(pi)
 
+    def testPythonSubclassValueIsForwardedToCpp(self):
+        class ConstantDensity(MediumDensity):
+            def getDensity(self, position, redshift = 0.):
+                return 99.0
 
-class TestPlasmaInstability(unittest.TestCase):
+        dens = ConstantDensity()
+        flow = FlowHomogeneous(1e38)
+        temp = MediumTemperatureHomogeneous(1e4)
 
-    def setUp(self):
-        self.flow = FlowHomogeneous(1e38, Vector3d(0, 0, 0))
-        self.density = MediumDensityHomogeneous(0.1)
-        self.temperature = MediumTemperatureHomogeneous(1e4)
-
-    def testEfficiencyClampedWhenNegative(self):
-        pi = PlasmaInstabilityBroderick2012(self.flow, self.density, self.temperature, -0.5)
-        self.assertAlmostEqual(pi.getEfficiencyFactor(), 0.)
-
-    def testEfficiencyClampedWhenAboveOne(self):
-        pi = PlasmaInstabilityBroderick2012(self.flow, self.density, self.temperature, 1.5)
-        self.assertAlmostEqual(pi.getEfficiencyFactor(), 1.)
-
-    def testEfficiencySetCorrectlyInRange(self):
-        pi = PlasmaInstabilityBroderick2012(self.flow, self.density, self.temperature, 0.7)
-        self.assertAlmostEqual(pi.getEfficiencyFactor(), 0.7)
-
-    def testSetGetLimit(self):
-        pi = PlasmaInstabilityBroderick2012(self.flow, self.density, self.temperature)
-        pi.setLimit(0.05)
-        self.assertAlmostEqual(pi.getLimit(), 0.05)
-
-    def testBroderick2012EnergyLossTimePositive(self):
-        pi = PlasmaInstabilityBroderick2012(self.flow, self.density, self.temperature)
-        self.assertGreater(pi.energyLossTime(make_electron()), 0.)
-
-    def testSchlickeiser2012EnergyLossTimePositive(self):
-        pi = PlasmaInstabilitySchlickeiser2012(self.flow, self.density, self.temperature)
-        self.assertGreater(pi.energyLossTime(make_electron()), 0.)
-
-    def testSironi2014EnergyLossTimePositive(self):
-        pi = PlasmaInstabilitySironi2014(self.flow, self.density, self.temperature)
-        self.assertGreater(pi.energyLossTime(make_electron()), 0.)
-
-    def testVafin2018EnergyLossTimeInverselyProportionalToTemperature(self):
-        pi1 = PlasmaInstabilityVafin2018(self.flow, self.density, MediumTemperatureHomogeneous(1e4))
-        pi2 = PlasmaInstabilityVafin2018(self.flow, self.density, MediumTemperatureHomogeneous(2e4))
-        c = make_electron()
-        self.assertAlmostEqual(pi1.energyLossTime(c) / pi2.energyLossTime(c), 2.0, places = 10)
-
-    def testBret2010TwoStreamEnergyLossTimePositive(self):
-        pi = PlasmaInstabilityBret2010TwoStream(self.flow, self.density, self.temperature)
-        self.assertGreater(pi.energyLossTime(make_electron()), 0.)
-
-    def testBret2010FilamentationEnergyLossTimePositive(self):
-        pi = PlasmaInstabilityBret2010Filamentation(self.flow, self.density, self.temperature)
-        self.assertGreater(pi.energyLossTime(make_electron()), 0.)
-
-    def testShalaby2020EnergyLossTimePositive(self):
-        pi = PlasmaInstabilityShalaby2020(self.flow, self.density, self.temperature)
-        self.assertGreater(pi.energyLossTime(make_electron()), 0.)
-
-    def testMiniati2013DefaultConstructor(self):
-        PlasmaInstabilityMiniati2013()
-
-    def testMiniati2013ParameterizedConstructor(self):
-        pi = PlasmaInstabilityMiniati2013(1e38, self.density, self.temperature)
-        self.assertIsNotNone(pi.getFlowProperties())
-        self.assertEqual(pi.getMediumDensity(), self.density)
-        self.assertEqual(pi.getMediumTemperature(), self.temperature)
-
-    def testMiniati2013EnergyLossTimeDoesNotThrow(self):
-        pi = PlasmaInstabilityMiniati2013(1e38, self.density, self.temperature)
-        c = Candidate()
-        c.current.setId(11)
-        c.current.setEnergy(1 * TeV)
-        c.current.setPosition(Vector3d(10 * Mpc, 0, 0))
-        c.setRedshift(0.)
-        pi.energyLossTime(c)  # should not raise
-
-    def testComputeEnergyLossPerLengthPositive(self):
-        pi = PlasmaInstabilityBroderick2012(self.flow, self.density, self.temperature)
-        self.assertGreater(pi.computeEnergyLossPerLength(make_electron()), 0.)
-
-    def testProcessReducesElectronEnergy(self):
-        pi = PlasmaInstabilityBroderick2012(self.flow, self.density, self.temperature)
-        c = Candidate()
-        c.current.setId(11)
-        c.current.setEnergy(1 * TeV)
-        c.current.setPosition(Vector3d(0, 0, 0))
-        c.setRedshift(0.)
-        c.setCurrentStep(1 * kpc)
-        pi.process(c)
-        self.assertLessEqual(c.current.getEnergy(), 1 * TeV)
-
-    def testProcessIgnoresPhotons(self):
-        pi = PlasmaInstabilityBroderick2012(self.flow, self.density, self.temperature)
-        c = Candidate()
-        c.current.setId(22)  # photon
-        E0 = 1 * TeV
-        c.current.setEnergy(E0)
-        c.current.setPosition(Vector3d(0, 0, 0))
-        c.setRedshift(0.)
-        c.setCurrentStep(1 * kpc)
-        pi.process(c)
-        self.assertAlmostEqual(c.current.getEnergy(), E0)
+        # getMediumDensity returns the same object back through ref_ptr
+        pi = PlasmaInstabilityBroderick2012(flow, dens, temp)
+        retrieved = pi.getMediumDensity()
+        self.assertAlmostEqual(retrieved.getDensity(Vector3d(0, 0, 0)), 99.0)
 
 
-class TestHelperFunctions(unittest.TestCase):
+class TestDirectorMediumTemperature(unittest.TestCase):
 
-    def testPlasmaFrequencyPositive(self):
-        wp = plasmaFrequency(0.1, 11)
-        self.assertGreater(wp, 0.)
+    def testPythonSubclassIsAccepted(self):
+        class ConstantTemperature(MediumTemperature):
+            def getTemperature(self, position, redshift = 0.):
+                return 1e6
 
-    def testPlasmaFrequencyScalesWithSqrtDensity(self):
-        wp1 = plasmaFrequency(1e-1, 11)
-        wp4 = plasmaFrequency(4e-1, 11)
-        self.assertAlmostEqual(wp4 / wp1, 2.0, places = 10)
+        temp = ConstantTemperature()
+        flow = FlowHomogeneous(1e38)
+        dens = MediumDensityHomogeneous(0.1)
+        pi = PlasmaInstabilityVafin2018(flow, dens, temp)
+        self.assertIsNotNone(pi)
 
-    def testMaxLinearGrowthFrequencyPositive(self):
-        g = maximumLinearGrowthFrequency(1e-16, 1e-1, 1000.)
-        self.assertGreater(g, 0.)
+    def testPythonSubclassValueIsForwardedToCpp(self):
+        class ConstantTemperature(MediumTemperature):
+            def getTemperature(self, position, redshift = 0.):
+                return 5e5
 
-    def testMaxLinearGrowthFrequencyLinearInBeamDensity(self):
-        g1 = maximumLinearGrowthFrequency(1e-16, 1e-1, 1000.)
-        g2 = maximumLinearGrowthFrequency(2e-16, 1e-1, 1000.)
-        self.assertAlmostEqual(g2 / g1, 2.0, places = 10)
+        temp = ConstantTemperature()
+        flow = FlowHomogeneous(1e38)
+        dens = MediumDensityHomogeneous(0.1)
+        pi = PlasmaInstabilityVafin2018(flow, dens, temp)
+        self.assertAlmostEqual(pi.getMediumTemperature().getTemperature(Vector3d(0, 0, 0)), 5e5)
 
-    def testMaxLinearGrowthFrequencyInverseInLorentzFactor(self):
-        g1 = maximumLinearGrowthFrequency(1e-16, 1e-1, 1000.)
-        g2 = maximumLinearGrowthFrequency(1e-16, 1e-1, 2000.)
-        self.assertAlmostEqual(g1 / g2, 2.0, places = 10)
+
+class TestDirectorFlow(unittest.TestCase):
+
+    def testPythonSubclassIsAccepted(self):
+        class ConstantFlow(Flow):
+            def getDensity(self, energy, position, redshift = 0.):
+                return 1e-16
+
+        flow = ConstantFlow()
+        dens = MediumDensityHomogeneous(0.1)
+        temp = MediumTemperatureHomogeneous(1e4)
+        pi = PlasmaInstabilityBroderick2012(flow, dens, temp)
+        self.assertIsNotNone(pi)
+
+    def testPythonSubclassValueIsForwardedToCpp(self):
+        class ConstantFlow(Flow):
+            def getDensity(self, energy, position, redshift = 0.):
+                return 7e-20
+
+        flow = ConstantFlow()
+        dens = MediumDensityHomogeneous(0.1)
+        temp = MediumTemperatureHomogeneous(1e4)
+        pi = PlasmaInstabilityBroderick2012(flow, dens, temp)
+        retrieved = pi.getFlowProperties()
+        self.assertAlmostEqual(retrieved.getDensity(1 * TeV, Vector3d(0, 0, 0)), 7e-20)
 
 
 if __name__ == '__main__':
