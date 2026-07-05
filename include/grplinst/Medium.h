@@ -6,7 +6,7 @@
 #include <crpropa/Vector3.h>
 #include <crpropa/Grid.h>
 #include <crpropa/Referenced.h>
-#include <crpropa/ParticleId.h>
+#include <crpropa/ParticleID.h>
 #include <crpropa/ParticleMass.h>
 
 
