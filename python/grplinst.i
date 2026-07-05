@@ -178,6 +178,13 @@
 %}
 
 
+/* Director features must be declared before the class definitions are included */
+%feature("director") grplinst::MediumDensity;
+%feature("director") grplinst::MediumTemperature;
+%feature("director") grplinst::EmissionGeometry;
+%feature("director") grplinst::Flow;
+%feature("director") grplinst::PlasmaInstability;
+
 /* Include plugin parts to generate wrappers  */
 %include "grplinst/Common.h"
 %include "grplinst/Flow.h"
@@ -198,9 +205,6 @@
 
 %template(MediumDensityRefPtr) crpropa::ref_ptr<grplinst::MediumDensity>;
 %template(MediumTemperatureRefPtr) crpropa::ref_ptr<grplinst::MediumTemperature>;
-
-%feature("director") grplinst::MediumDensity;
-%feature("director") grplinst::MediumTemperature;
 
 
 /*************************************************************************************************/
@@ -223,8 +227,6 @@
 	}
 %}
 
-%feature("director") grplinst::EmissionGeometry;
-
 
 /*************************************************************************************************/
 /**                          				Flow                                 				**/
@@ -233,7 +235,6 @@
 %ignore operator grplinst::Flow*;
 %implicitconv crpropa::ref_ptr<grplinst::Flow>;
 %template(FlowRefPtr) crpropa::ref_ptr<grplinst::Flow>;
-%feature("director") grplinst::Flow;
 
 
 /*************************************************************************************************/
@@ -243,7 +244,6 @@
 %ignore operator grplinst::PlasmaInstability*;
 %implicitconv crpropa::ref_ptr<grplinst::PlasmaInstability>;
 %template(PlasmaInstabilityRefPtr) crpropa::ref_ptr<grplinst::PlasmaInstability>;
-%feature("director") grplinst::PlasmaInstability;
 
 
 /*************************************************************************************************/
