@@ -63,7 +63,7 @@ message(STATUS "Install RPATH: ${CMAKE_INSTALL_RPATH} (+ linked library dirs)")
 # general options
 option(ENABLE_PYTHON "Create Python bindings with SWIG" On)
 option(USE_OWN_CRPROPA "Use builtin CRPropa instead of in CRPROPA_PATH installed CRPropa" Off)
-option(ENABLE_TESTING "Build tests and enable test target" Off)
+option(ENABLE_TESTING "Build tests and enable test target" On)
 
 
 
@@ -300,11 +300,17 @@ if(ENABLE_TESTING)
 		set(GTEST_LIBRARIES ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
 	endif(USE_OWN_CRPROPA)
 
-	# first add the cpp tests:
-	add_executable(testPluginCPP ${CMAKE_CURRENT_SOURCE_DIR}/test/testPlugin.cpp)
-	target_include_directories(testPluginCPP PRIVATE ${GTEST_INCLUDE_DIR})
-	target_link_libraries(testPluginCPP grplinst ${GTEST_LIBRARIES} pthread)
-	add_test(testPluginCPP testPluginCPP)
+	# C++ test executables — one per test suite
+	foreach(TEST_NAME testFlow testMedium testPlasmaInstability)
+		add_executable(${TEST_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.cpp)
+		target_include_directories(${TEST_NAME} PRIVATE
+			${GTEST_INCLUDE_DIR}
+			${CMAKE_CURRENT_SOURCE_DIR}/include
+			${grplinst_EXTRA_INCLUDES}
+		)
+		target_link_libraries(${TEST_NAME} grplinst ${GTEST_LIBRARIES} pthread)
+		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+	endforeach()
 
 	if(ENABLE_PYTHON AND Python_FOUND)
 		file(
