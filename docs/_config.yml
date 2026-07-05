@@ -1,0 +1,11 @@
+title: grplinst
+description: Plasma-instability module for CRPropa.
+theme: minima
+header_pages:
+  - index.md
+  - getting-started.md
+  - code-structure.md
+  - models.md
+  - usage.md
+  - references.md
+markdown: kramdown
