@@ -209,8 +209,8 @@ if(ENABLE_PYTHON)
 		list(APPEND grplinst_SWIG_DEFINES -DWITHNUMPY)
 		list(APPEND grplinst_SWIG_DEFINES -doxygen)
 
-		# use SWIG's builtin (maybe should be abandoned if everything will be tested and working with -builtin)
-		option(ENABLE_SWIG_BUILTIN "Use SWIG builtin option" On)
+		# use SWIG's builtin only when explicitly requested; the non-builtin mode is more robust with CRPropa
+		option(ENABLE_SWIG_BUILTIN "Use SWIG builtin option" Off)
 
 		if(ENABLE_SWIG_BUILTIN)
 			set(BUILTIN "-builtin")
