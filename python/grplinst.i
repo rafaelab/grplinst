@@ -113,7 +113,7 @@
 
 	npy_intp size = PyArray_SIZE(array);
 	double* data = static_cast<double*>(PyArray_DATA(array));
-	vec.assign(data, data + size)
+	vec.assign(data, data + size);
 	Py_DECREF(array);
 
 	$1 = vec;
@@ -260,8 +260,6 @@
 
 /* hide warnings */
 #pragma SWIG nowarn=302,312,315,325,361,389,401,508,509
-
-
 
 
 
