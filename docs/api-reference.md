@@ -102,16 +102,16 @@ is out of range.
 For each candidate the base class:
 
 1. returns immediately unless the particle is an electron or positron
-   (`|id| == 11`);
-2. evaluates the local-frame energy `E = E_obs·(1+z)` and de-redshifted step
-   `dx = Δx/(1+z)`;
-3. asks the subclass for the cooling time `τ = energyLossTime(candidate)`;
+   ($$|\mathrm{id}| = 11$$);
+2. evaluates the local-frame energy $$E = E_\mathrm{obs}(1+z)$$ and de-redshifted
+   step $$\mathrm{d}x = \Delta x/(1+z)$$;
+3. asks the subclass for the cooling time $$\tau = $$ `energyLossTime(candidate)`;
 4. forms the energy loss per length
-   `dE/dx = efficiency · E / (c·τ)` via `computeEnergyLossPerLength`
-   (returns `0` if `τ ≤ 0`, which safely disables the loss);
-5. updates the energy to `max(0, E − dE/dx·dx)`, stored back as
-   `E_new/(1+z)`;
-6. limits the next step to `limit · E / (dE/dx)`.
+   $$\mathrm{d}E/\mathrm{d}x = \eta\,E/(c\,\tau)$$ via `computeEnergyLossPerLength`
+   (returns `0` if $$\tau \le 0$$, which safely disables the loss);
+5. updates the energy to $$\max\!\big(0,\, E - (\mathrm{d}E/\mathrm{d}x)\,\mathrm{d}x\big)$$,
+   stored back as $$E_\mathrm{new}/(1+z)$$;
+6. limits the next step to $$\texttt{limit}\cdot E/(\mathrm{d}E/\mathrm{d}x)$$.
 
 **Virtual interface (implemented by each model)**
 
@@ -160,9 +160,11 @@ FlowHomogeneous(double luminosity,
                 crpropa::Vector3d origin = {0, 0, 0});
 ```
 
-`getDensity` returns `L / (2π·λγγ³·Γ_IC) / E`, using analytic `λγγ` and `Γ_IC`
-unless pair-production / inverse-Compton modules have been attached, in which case
-their rates are used. This is an **upper limit** on the true beam density.
+`getDensity` returns
+$$L / (2\pi\,\lambda_{\gamma\gamma}^{3}\,\Gamma_\mathrm{IC})\,/\,E$$, using analytic
+$$\lambda_{\gamma\gamma}$$ and $$\Gamma_\mathrm{IC}$$ unless pair-production /
+inverse-Compton modules have been attached, in which case their rates are used.
+This is an **upper limit** on the true beam density.
 
 ### `FlowJet1D`
 
@@ -212,7 +214,7 @@ virtual double getDensity(const crpropa::Vector3d& position,
 MediumDensityHomogeneous(double density);   // comoving density in m^-3
 ```
 
-`getDensity` returns `n₀·(1+z)³`. Accessors: `setDensityValue`,
+`getDensity` returns $$n_0 (1+z)^3$$. Accessors: `setDensityValue`,
 `getDensityValue`.
 
 ## `MediumTemperature` {#mediumtemperature}
@@ -235,7 +237,7 @@ double getVelocity(int id,
 MediumTemperatureHomogeneous(double temperature);   // K
 ```
 
-`getTemperature` returns `T₀·(1+z)`. Accessors: `setTemperatureValue`,
+`getTemperature` returns $$T_0 (1+z)$$. Accessors: `setTemperatureValue`,
 `getTemperatureValue`.
 
 ## Helper functions
@@ -249,12 +251,13 @@ double maximumLinearGrowthFrequency(double beamDensity,
                                     int id = 11);
 ```
 
-- **`plasmaFrequency(n, id)`** — `ω_p = sqrt(n·q²/(m·ε₀))` in Hz. For electrons
-  (`id = 11`) `q = e` and `m = m_e`; nuclei use their charge number and nuclear
-  mass.
+- **`plasmaFrequency(n, id)`** — $$\omega_p = \sqrt{n q^2 / (m \varepsilon_0)}$$
+  in Hz. For electrons (`id = 11`) $$q = e$$ and $$m = m_e$$; nuclei use their
+  charge number and nuclear mass.
 - **`maximumLinearGrowthFrequency(n_b, n, γ, id)`** — the maximum linear growth
-  rate `ω_p(n)·(n_b/n)·(1/γ)` in Hz. Neglects magnetic fields and assumes an
-  angular spread `Δθ = <1/γ>`. This is the rate inverted by
+  rate $$\omega_p(n)\,(n_b/n)\,(1/\gamma)$$ in Hz. Neglects magnetic fields and
+  assumes an angular spread $$\Delta\theta = \langle 1/\gamma \rangle$$. This is
+  the rate inverted by
   [`PlasmaInstabilityMiniati2013`](models.html#plasmainstabilityminiati2013).
 
 ## Geometry (infrastructure)
@@ -279,8 +282,8 @@ symbols (`TeV`, `Mpc`, `kpc`, `eV`, …) are available they are used.
 | Cooling time `τ`, frequencies | s, Hz |
 
 Two module-internal constants worth noting (`include/grplinst/Common.h`):
-`u_CMB = 4.178×10⁻¹⁴ J m⁻³` (CMB energy density) and
-`mec2 = m_e c²` (electron rest energy).
+`u_CMB` $$= 4.178\times10^{-14}\ \mathrm{J\,m^{-3}}$$ (CMB energy density) and
+`mec2` $$= m_e c^2$$ (electron rest energy).
 
 ## Python bindings
 

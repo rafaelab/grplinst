@@ -10,30 +10,22 @@ before you run anything, so that the numbers you get out carry a physical
 meaning. None of it is needed to make the code compile — but it is needed to
 interpret the results honestly.
 
-*(Equations are written in plain notation so that they render reliably on the
-documentation site. Symbols: `γ` Lorentz factor, `τ` cooling time, `σ_T` Thomson
-cross-section, `ω_p` plasma frequency, `λγγ` pair-production mean free path,
-`Γ_IC` inverse-Compton loss rate, `u_CMB` CMB energy density.)*
-
 ## 1. Blazar-induced electromagnetic cascades
 
 TeV blazars emit very-high-energy (VHE) gamma rays. On their way to us these
 photons do not travel through empty space: the Universe is filled with the
 **extragalactic background light** (EBL) and the **cosmic microwave background**
 (CMB). A VHE photon can collide with a low-energy background photon and produce
-an electron–positron pair:
+an electron–positron pair,
 
-```
-γ_VHE  +  γ_bkg  →  e⁺  +  e⁻
-```
+$$ \gamma_\mathrm{VHE} + \gamma_\mathrm{bkg} \;\rightarrow\; e^{+} + e^{-} . $$
 
-The pairs are ultra-relativistic (Lorentz factors `γ ~ 10⁶`) and inherit the
-direction of the parent gamma ray, forming a narrow **pair beam**. Each pair then
-up-scatters CMB photons through **inverse-Compton (IC) scattering**:
+The pairs are ultra-relativistic (Lorentz factors $$\gamma \sim 10^{6}$$) and
+inherit the direction of the parent gamma ray, forming a narrow **pair beam**.
+Each pair then up-scatters CMB photons through **inverse-Compton (IC)
+scattering**,
 
-```
-e±  +  γ_CMB  →  e±  +  γ_GeV
-```
+$$ e^{\pm} + \gamma_\mathrm{CMB} \;\rightarrow\; e^{\pm} + \gamma_\mathrm{GeV} , $$
 
 producing secondary gamma rays at GeV energies. Those can pair-produce again, and
 so on: the result is an **electromagnetic cascade** that reprocesses TeV power
@@ -78,28 +70,27 @@ prescription as an **effective cooling term** acting on the pairs, exactly like
 any other continuous energy-loss process in CRPropa.
 
 Each model provides a single quantity: a **characteristic cooling time**
-`τ(E, n_b, n, T, z)` — the timescale on which a pair of energy `E` loses its
-energy to the instability. The base module turns this into an energy-loss
-*length* and applies it during propagation:
+$$\tau(E, n_b, n, T, z)$$ — the timescale on which a pair of energy $$E$$ loses
+its energy to the instability. The base module turns this into an energy-loss
+*length* and applies it during propagation,
 
-```
-dE/dx = η · E / (c · τ)
-```
+$$ \frac{\mathrm{d}E}{\mathrm{d}x} = \eta\,\frac{E}{c\,\tau} , $$
 
-where `c` is the speed of light and `η ∈ [0, 1]` is a user-set **efficiency**
-factor that lets you scale the effect (for sensitivity tests) or switch it off.
-See [`PlasmaInstability::process`](api-reference.html#plasmainstability-base-class)
+where $$c$$ is the speed of light and $$\eta \in [0, 1]$$ is a user-set
+**efficiency** factor that lets you scale the effect (for sensitivity tests) or
+switch it off. See
+[`PlasmaInstability::process`](api-reference.html#plasmainstability-base-class)
 for the exact bookkeeping, including how the step size is limited so the loss is
 resolved.
 
-> **Units convention.** The module interprets `τ` as a time in **seconds**: it
-> forms the loss length as `c·τ`. Every model's formula (see
+> **Units convention.** The module interprets $$\tau$$ as a time in **seconds**:
+> it forms the loss length as $$c\,\tau$$. Every model's formula (see
 > [Models](models.html)) is written in terms of scaled variables, and the leading
 > constant carries the units of seconds.
 
-Only **electrons and positrons** are affected (`|id| == 11`); photons pass
-through untouched. This is the physically correct choice: the instability acts on
-the charged pair beam, not on the cascade photons.
+Only **electrons and positrons** are affected ($$|\mathrm{id}| = 11$$); photons
+pass through untouched. This is the physically correct choice: the instability
+acts on the charged pair beam, not on the cascade photons.
 
 ## 4. The three physical inputs
 
@@ -109,26 +100,30 @@ which you supply as separate, composable objects.
 ### 4.1 The pair-beam density — `Flow`
 
 The single most important — and most uncertain — input is the **beam number
-density** `n_b`. A `Flow` object answers the question *"how dense is the pair
+density** $$n_b$$. A `Flow` object answers the question *"how dense is the pair
 beam here?"* through `getDensity(energy, position, redshift)`.
 
 The default estimate, `FlowHomogeneous`, follows Broderick et al. (2012). It
-assumes the source injects all of its luminosity `L` into the beam and that IC
+assumes the source injects all of its luminosity $$L$$ into the beam and that IC
 cooling sets the pair lifetime, giving an **upper limit** on the beam density
-(their eq. 7):
+(their eq. 7),
 
-```
-n_b(E, z) = L / (2π · λγγ³ · Γ_IC) / E
-```
+$$ n_b(E, z) = \frac{L}{2\pi\,\lambda_{\gamma\gamma}^{3}\,\Gamma_\mathrm{IC}}\,\frac{1}{E} . $$
 
 Here:
 
-- `λγγ` is the **pair-production mean free path** of the parent photon on the
-  EBL. With no CRPropa module attached, the code uses the analytic approximation
-  `λγγ ≈ 35 Mpc × (0.5 TeV / E) × [(1+z)/2]^(-4.5)`; the factor `0.5` reflects
-  that a pair member carries about half the parent photon energy.
-- `Γ_IC` is the **inverse-Compton loss rate** in the Thomson regime,
-  `Γ_IC = (4/3) · σ_T · c · u_CMB · (E / m_e c²) · (1+z)⁴ / (m_e c²)`.
+- $$\lambda_{\gamma\gamma}$$ is the **pair-production mean free path** of the
+  parent photon on the EBL. With no CRPropa module attached, the code uses the
+  analytic approximation
+
+  $$ \lambda_{\gamma\gamma} \approx 35\ \mathrm{Mpc} \times \frac{0.5\,\mathrm{TeV}}{E} \times \left(\frac{1+z}{2}\right)^{-4.5} ; $$
+
+  the factor $$0.5$$ reflects that a pair member carries about half the parent
+  photon energy.
+- $$\Gamma_\mathrm{IC}$$ is the **inverse-Compton loss rate** in the Thomson
+  regime,
+
+  $$ \Gamma_\mathrm{IC} = \frac{4}{3}\,\sigma_\mathrm{T}\,c\,u_\mathrm{CMB}\,\frac{E}{m_e c^2}\,\frac{(1+z)^{4}}{m_e c^2} . $$
 
 If you instead attach CRPropa's `EMPairProduction` and
 `EMInverseComptonScattering` modules to the `Flow` (via `setPairProduction` /
@@ -138,42 +133,42 @@ cross-sections and photon fields used in the rest of the simulation.
 
 Because the beam density enters the cooling time strongly (see the exponents in
 [Models](models.html)), the choice of `Flow` model is often the dominant
-systematic. `FlowJet1D` lets you impose a tabulated `n_b(r)` profile instead, and
-you can sub-class `Flow` in Python for anything else.
+systematic. `FlowJet1D` lets you impose a tabulated $$n_b(r)$$ profile instead,
+and you can sub-class `Flow` in Python for anything else.
 
 ### 4.2 The ambient density — `MediumDensity`
 
-`n` is the number density of the background IGM plasma. It sets the local plasma
-frequency `ω_p = sqrt(n e² / (m_e ε₀))`, which controls how the medium responds
-to the beam. `MediumDensityHomogeneous` returns a constant comoving value scaled
-to the proper density, `n(z) = n₀ (1+z)³`.
+$$n$$ is the number density of the background IGM plasma. It sets the local
+plasma frequency $$\omega_p = \sqrt{n e^2 / (m_e \varepsilon_0)}$$, which controls
+how the medium responds to the beam. `MediumDensityHomogeneous` returns a constant
+comoving value scaled to the proper density, $$n(z) = n_0 (1+z)^3$$.
 
 ### 4.3 The ambient temperature — `MediumTemperature`
 
-`T` is the temperature of the background plasma. It matters because the thermal
+$$T$$ is the temperature of the background plasma. It matters because the thermal
 spread of the background electrons can **quench** the instability: a hot medium is
 harder to destabilise. Models such as Schlickeiser (2012) and Vafin (2018) depend
-on `T` explicitly. `MediumTemperatureHomogeneous` returns `T(z) = T₀ (1+z)`, and
-the base class can convert temperature into a thermal velocity
-`v = sqrt(k_B T / m)` through `getVelocity`.
+on $$T$$ explicitly. `MediumTemperatureHomogeneous` returns $$T(z) = T_0 (1+z)$$,
+and the base class can convert temperature into a thermal velocity
+$$v = \sqrt{k_B T / m}$$ through `getVelocity`.
 
 ## 5. Redshift conventions
 
 `grplinst` follows CRPropa's convention that a candidate stores its **observed**
 (present-day) energy and that the environment is described in **comoving** terms.
 Internally each model evaluates the physics in the local frame at the candidate's
-redshift `z`:
+redshift $$z$$:
 
 | Quantity | Scaling used in the code |
 | --- | --- |
-| Particle energy | `E_local = E_obs · (1+z)` |
-| Medium density | `n(z) = n₀ · (1+z)³` |
-| Beam density (`FlowJet1D`) | `n_b(z) = n_b(comoving) · (1+z)³` |
-| Medium temperature | `T(z) = T₀ · (1+z)` |
+| Particle energy | $$E_\mathrm{local} = E_\mathrm{obs}\,(1+z)$$ |
+| Medium density | $$n(z) = n_0\,(1+z)^3$$ |
+| Beam density (`FlowJet1D`) | $$n_b(z) = n_b^\mathrm{com}\,(1+z)^3$$ |
+| Medium temperature | $$T(z) = T_0\,(1+z)$$ |
 
-The step length is likewise de-redshifted, `dx = Δx / (1+z)`, before the loss is
-applied. You normally do not apply these factors yourself — you specify
-present-day/comoving values and the module handles the scaling.
+The step length is likewise de-redshifted, $$\mathrm{d}x = \Delta x /(1+z)$$,
+before the loss is applied. You normally do not apply these factors yourself — you
+specify present-day/comoving values and the module handles the scaling.
 
 ## 6. What this model is *not*
 
