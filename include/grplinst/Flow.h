@@ -33,8 +33,8 @@ namespace grplinst {
  */
 class Flow : public crpropa::Referenced {
 	protected:
-		crpropa::ref_ptr<crpropa::EMPairProduction> pairProduction = nullptr;
-		crpropa::ref_ptr<crpropa::EMInverseComptonScattering> inverseCompton = nullptr;
+		std::vector<crpropa::ref_ptr<crpropa::EMPairProduction>> pairProduction = {};
+		std::vector<crpropa::ref_ptr<crpropa::EMInverseComptonScattering>> inverseCompton = {};
 		crpropa::Vector3d origin = crpropa::Vector3d(0, 0, 0);
 		double luminosity = 1.;
 
@@ -59,13 +59,15 @@ class Flow : public crpropa::Referenced {
 		 * @brief Sets the pair production module to be used by CRPropa.
 		 * @param pp Reference to the EMPairProduction module.
 		 */
-		void setPairProduction(crpropa::ref_ptr<crpropa::EMPairProduction> pp);
+		void setPairProduction(std::vector<crpropa::ref_ptr<crpropa::EMPairProduction>> pp);
+		void addPairProduction(crpropa::ref_ptr<crpropa::EMPairProduction> pp);
 
 		/**
 		 * @brief Sets the inverse Compton scattering module to be used by CRPropa.
 		 * @param ic Reference to the EMInverseComptonScattering module.
 		 */
-		void setInverseCompton(crpropa::ref_ptr<crpropa::EMInverseComptonScattering> ic);
+		void setInverseCompton(std::vector<crpropa::ref_ptr<crpropa::EMInverseComptonScattering>> ic);
+		void addInverseCompton(crpropa::ref_ptr<crpropa::EMInverseComptonScattering> ic);
 
 		/**
 		 * @brief Gets the origin of the flow.
@@ -157,7 +159,7 @@ class FlowJet1D : public Flow {
 		 */
 		FlowJet1D(const std::vector<double>& distances, const std::vector<double>& beamDensity, double luminosity = 1, crpropa::Vector3d centre = crpropa::Vector3d(0, 0, 0), bool interpolateLog = true);
 
-		/** @brief Default constructor (luminosity = 1, origin = (0,0,0)). 
+		/** @brief Default constructor 
 		 */
 		FlowJet1D();
 
@@ -203,7 +205,7 @@ class FlowJet1D : public Flow {
 /*                                  Others                                   */
 /*****************************************************************************/
 
-crpropa::ref_ptr<Flow> createFlowMiniati2013(double luminosity, crpropa::Vector3d centre = crpropa::Vector3d(0, 0, 0));
+crpropa::ref_ptr<Flow> createFlowMiniati2013(double luminosity, crpropa::Vector3d centre = crpropa::Vector3d(0, 0, 0), bool logDistance = true);
 
 
 } // namespace grplinst
