@@ -53,7 +53,7 @@ TEST(FlowHomogeneous, GetDensityScalesWithEnergy) {
 TEST(FlowHomogeneous, GetDensityChangesWithRedshift) {
 	FlowHomogeneous flow(1e38);
 	Vector3d pos(0, 0, 0);
-	double d0 = flow.getDensity(1 * TeV, pos, 0.);
+	double d0 = flow.getDensity(1 * TeV, pos, 0.0);
 	double dz = flow.getDensity(1 * TeV, pos, 0.5);
 	EXPECT_NE(d0, dz);
 }
