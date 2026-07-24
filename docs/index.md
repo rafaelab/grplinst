@@ -5,42 +5,78 @@ title: grplinst
 
 # grplinst
 
-`grplinst` is a CRPropa extension that models energy losses from plasma instabilities in electromagnetic cascades. It adds C++ and Python interfaces for beam models, intergalactic-medium profiles, and several literature-based cooling prescriptions for cascade electrons and positrons.
+**`grplinst`** ("group–plasma instabilities") is an extension for the
+[CRPropa 3](https://github.com/CRPropa/CRPropa3) propagation code. It models the
+energy losses that **plasma (beam) instabilities** are expected to inflict on the
+electron–positron pairs produced in **blazar-induced electromagnetic cascades**
+as they travel through the intergalactic medium (IGM).
 
-The code is intended for studies of blazar-induced gamma-ray cascades in the intergalactic medium, where plasma instabilities are treated as an effective cooling term. This is an approximate modelling layer rather than a first-principles particle-in-cell treatment, so model choice and parameter assumptions matter.
+The module supplies:
 
-## Documentation Map
+- a family of `PlasmaInstability*` modules that plug straight into a CRPropa
+  `ModuleList`, each implementing a different literature prescription for the
+  instability cooling time;
+- `Flow` classes that describe the **pair-beam density** the cascade drives into
+  the IGM;
+- `MediumDensity` and `MediumTemperature` classes that describe the ambient
+  plasma;
+- helper functions such as `plasmaFrequency` and
+  `maximumLinearGrowthFrequency`;
+- full **Python bindings** through SWIG, so every component can be configured,
+  sub-classed, and combined from Python.
 
-- [Getting Started](getting-started.html): build requirements, installation, and test commands.
-- [Code Structure](code-structure.html): main abstractions, source layout, and public headers.
-- [Models](models.html): implemented plasma-instability prescriptions and when each one is used.
-- [Usage](usage.html): Python and C++ integration patterns for CRPropa simulations.
-- [References](references.html): papers implemented by the code and related project links.
+> **A word of caution.** Plasma instabilities in a dilute relativistic pair beam
+> are a genuinely hard kinetic problem. `grplinst` does **not** solve it from
+> first principles; it wraps a set of *effective* cooling prescriptions taken
+> from the literature and lets you compare them within the same cascade
+> simulation. A fully self-consistent treatment requires particle-in-cell (PIC)
+> methods. Please read the [Physics Background](physics.html) page before drawing
+> quantitative conclusions.
 
-## What The Code Provides
+## Where to go next
 
-- `PlasmaInstability*` modules that can be inserted into a CRPropa `ModuleList`.
-- `Flow` implementations that describe the pair-beam density used by the cooling models.
-- `MediumDensity` and `MediumTemperature` interfaces for homogeneous or user-defined environments.
-- Helper functions such as `plasmaFrequency` and `maximumLinearGrowthFrequency`.
-- SWIG bindings so the same components can be configured from Python.
+| Page | What it covers |
+| --- | --- |
+| [Getting Started](getting-started.html) | Prerequisites, building against CRPropa, running the tests. |
+| [Physics Background](physics.html) | Blazar cascades, pair beams, why instabilities matter, the effective-cooling approximation, and its limits. |
+| [Models](models.html) | Every implemented prescription, its cooling-time formula, regimes, and inputs. |
+| [Usage](usage.html) | Python and C++ integration patterns, parameter scans, and custom profiles. |
+| [API Reference](api-reference.html) | Class hierarchy, methods, parameters, units, and redshift conventions. |
+| [References](references.html) | The method paper (please cite it) and the source of each model. |
 
-## Quick Build
+## A thirty-second example
 
-```bash
-cmake -S . -B build
-cmake --build build
-ctest --test-dir build --output-on-failure
+```python
+from crpropa import *
+from grplinst import *
+
+# ambient intergalactic medium and pair beam
+temperature = MediumTemperatureHomogeneous(1e4)     # K
+density     = MediumDensityHomogeneous(1e-1)         # m^-3
+beam        = FlowHomogeneous(1e38, Vector3d(0, 0, 0))  # source luminosity in W
+
+# one instability prescription, ready to drop into a ModuleList
+plinst = PlasmaInstabilityBroderick2012(beam, density, temperature)
+
+sim = ModuleList()
+sim.add(SimplePropagation(1e-3 * kpc, 10 * Mpc))
+sim.add(Redshift())
+sim.add(plinst)
 ```
 
-## Entry Points
+A complete, physically meaningful pipeline (with pair production and
+inverse-Compton scattering) is given on the [Usage](usage.html) page and in
+[`examples/testPlugin.py`](https://github.com/rafaelab/grplinst/blob/v2/examples/testPlugin.py).
 
-- Main umbrella header: `include/grplinst.h`
-- Plasma-instability models: `include/grplinst/PlasmaInstability.h`
-- Beam-density models: `include/grplinst/Flow.h`
-- Medium profiles: `include/grplinst/Medium.h`
-- Example Python pipeline: `examples/testPlugin.py`
+## Citing grplinst
 
-## Citation
+If `grplinst` contributes to your work, please cite the method paper:
 
-If you use `grplinst`, cite the main method paper listed on the [References](references.html) page.
+> R. Alves Batista, A. Saveliev, E. M. de Gouveia Dal Pino,
+> *The impact of plasma instabilities on the spectra of TeV blazars*,
+> MNRAS **489** (2019) 3836.
+> [doi:10.1093/mnras/stz2389](https://doi.org/10.1093/mnras/stz2389) ·
+> [arXiv:1904.13345](https://arxiv.org/abs/1904.13345)
+
+See [References](references.html) for the full bibliography, including the origin
+of each instability model.

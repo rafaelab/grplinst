@@ -5,57 +5,127 @@ title: Getting Started
 
 # Getting Started
 
-This page covers the practical setup needed to build and test `grplinst` against CRPropa.
+This page walks through building `grplinst` against CRPropa and running the test
+suite. `grplinst` is a CRPropa *plugin*: it compiles to a shared library and an
+optional Python module that are loaded alongside CRPropa itself.
 
-## Requirements
+## Prerequisites
 
-- CRPropa 3 installation available through `find_package(CRPropa)` or built through the `USE_OWN_CRPROPA` option.
-- A C++17 compiler.
-- CMake 3.14 or newer.
-- Python 3, SWIG 4+, and NumPy if you want the Python bindings.
+| Requirement | Notes |
+| --- | --- |
+| **CRPropa 3** (≥ 3.3 recommended) | Either an existing installation discoverable through `find_package(CRPropa)`, or built on the fly with the `USE_OWN_CRPROPA` option (see below). |
+| **C++17 compiler** | GCC or Clang. The project sets `CMAKE_CXX_STANDARD 17`. |
+| **CMake** ≥ 3.14 | |
+| **Fortran compiler** (`gfortran`) | Needed by CRPropa's dependencies when it is built from source. |
+| **SWIG 4+**, **Python 3**, **NumPy** | Only required for the Python bindings (`ENABLE_PYTHON`, on by default). |
 
-## Build Options
+On Debian/Ubuntu the toolchain is:
 
-The top-level `CMakeLists.txt` exposes a few options that are useful when preparing local builds or CI jobs:
+```bash
+sudo apt-get update
+sudo apt-get install --yes cmake g++ gfortran make swig
+python3 -m pip install --upgrade numpy
+```
 
-- `ENABLE_PYTHON=On|Off`: build the SWIG Python module.
-- `ENABLE_TESTING=On|Off`: compile the unit tests.
-- `USE_OWN_CRPROPA=On|Off`: fetch and build CRPropa instead of using an installed copy.
+On macOS with Homebrew:
 
-## Typical Local Build
+```bash
+brew install gcc swig cmake
+python3 -m pip install --upgrade numpy
+```
+
+## Getting the code
+
+```bash
+git clone https://github.com/rafaelab/grplinst.git
+cd grplinst
+```
+
+## Build options
+
+The top-level `CMakeLists.txt` exposes the following switches (defaults in
+brackets):
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `ENABLE_PYTHON` | `On` | Build the SWIG Python module. |
+| `ENABLE_TESTING` | `On` | Build the C++ (GoogleTest) and Python unit tests. |
+| `USE_OWN_CRPROPA` | `Off` | Fetch and build CRPropa from source via CMake `FetchContent` instead of using an installed copy. |
+| `ENABLE_COVERAGE` | `Off` | Instrument the build for coverage analysis. |
+| `ENABLE_PYBIND11_STUBGEN` | `On` | Generate Python stub files for the bindings. |
+
+Pass any option with `-D<NAME>=On|Off`.
+
+## Building against an installed CRPropa (recommended)
+
+If you already have CRPropa installed, point CMake at it and build:
 
 ```bash
 cmake -S . -B build
-cmake --build build
+cmake --build build --parallel 4
 ```
 
-If CRPropa is not installed in a default location, point CMake to it with the usual variables such as `CMAKE_PREFIX_PATH` or the package-specific paths used by your local installation.
+If CRPropa is not in a default location, help CMake find it, for example:
 
-## Python Bindings
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH="$HOME/.local"
+```
 
-With Python support enabled, the build creates the `grplinst` Python package inside the build tree. The examples in this repository typically extend `sys.path` with the build directory before importing the module.
+The bundled `cmake/FindCRPropa.cmake` module locates the CRPropa headers,
+library, and SWIG interface files.
 
-Example:
+## Building a self-contained copy of CRPropa
+
+For a clean-room build (this is what continuous integration uses), let the
+project download and build CRPropa for you:
+
+```bash
+cmake -S . -B build -DUSE_OWN_CRPROPA=On
+cmake --build build --parallel 4
+```
+
+This is convenient but slower, because it compiles CRPropa in full the first
+time.
+
+## Using the Python module
+
+With `ENABLE_PYTHON=On`, the build produces the `grplinst` Python package inside
+the build tree. Add that directory to your `PYTHONPATH`, or extend `sys.path`
+from within your script (as the bundled examples do):
 
 ```python
 import sys
-sys.path.append("../build")
+sys.path.append("build")   # path to the build directory
 
 from crpropa import *
 from grplinst import *
 ```
 
-## Running Tests
+The same rule applies to CRPropa: its Python module must be importable. If you
+built CRPropa yourself, make sure its build directory is on the `PYTHONPATH` too.
 
-The repository contains both C++ and Python tests.
+## Running the tests
+
+The repository ships both C++ and Python tests, wired into CTest:
 
 ```bash
 ctest --test-dir build --output-on-failure
 ```
 
-Useful test files to inspect while integrating the library:
+The individual test files are worth reading as compact, executable
+documentation:
 
-- `test/testPlasmaInstability.cpp`: model behaviour and helper-function tests.
-- `test/testMedium.cpp`: medium-profile coverage.
-- `test/testFlow.cpp`: beam-model coverage.
-- `test/testPlugin.py`: Python binding and SWIG-director coverage.
+| File | Coverage |
+| --- | --- |
+| [`test/testPlasmaInstability.cpp`](https://github.com/rafaelab/grplinst/blob/v2/test/testPlasmaInstability.cpp) | Every model's cooling time, the base-class energy-loss machinery, and the helper functions. |
+| [`test/testFlow.cpp`](https://github.com/rafaelab/grplinst/blob/v2/test/testFlow.cpp) | `FlowHomogeneous`, `FlowJet1D`, and the Miniati (2013) beam profile. |
+| [`test/testMedium.cpp`](https://github.com/rafaelab/grplinst/blob/v2/test/testMedium.cpp) | Homogeneous density and temperature profiles. |
+| [`test/testPython.py`](https://github.com/rafaelab/grplinst/blob/v2/test/testPython.py) | Import checks, `std::vector` ↔ list/NumPy conversions, and Python sub-classing through SWIG directors. |
+
+If the C++ tests build but do not run, verify that CRPropa was itself built with
+its bundled GoogleTest available (CRPropa ≥ 3.3 exposes it), since the test
+target reuses it.
+
+Once the tests pass you are ready to build a simulation — continue with
+[Usage](usage.html), or read the [Physics Background](physics.html) first to
+understand what the module actually computes.

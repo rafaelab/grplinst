@@ -5,32 +5,111 @@ title: Usage
 
 # Usage
 
-The typical workflow is to build a beam model, define the ambient medium, choose one plasma-instability prescription, and insert it into a normal CRPropa electromagnetic cascade setup.
+The recipe is always the same:
 
-## Minimal Python Example
+1. describe the ambient medium (`MediumDensity`, `MediumTemperature`),
+2. describe the pair beam (`Flow`),
+3. pick one instability prescription (`PlasmaInstability*`),
+4. add it to a normal CRPropa electromagnetic-cascade `ModuleList`.
+
+The instability module is just another CRPropa `Module`, so it composes with pair
+production, inverse-Compton scattering, redshift, observers, and break conditions
+exactly as you would expect.
+
+## Minimal Python example
 
 ```python
 import sys
-sys.path.append("../build")
+sys.path.append("build")   # so that `import grplinst` works
 
 from crpropa import *
 from grplinst import *
 
-temperature = MediumTemperatureHomogeneous(1e4)
-density = MediumDensityHomogeneous(1e-1)
+# 1. ambient medium
+temperature = MediumTemperatureHomogeneous(1e4)          # K
+density     = MediumDensityHomogeneous(1e-1)             # m^-3
+
+# 2. pair beam (argument is the source luminosity in W)
 beam = FlowHomogeneous(1e38, Vector3d(0, 0, 0))
 
+# 3. one prescription
 plinst = PlasmaInstabilityBroderick2012(beam, density, temperature)
 
+# 4. drop it into a ModuleList
 sim = ModuleList()
 sim.add(SimplePropagation(1e-3 * kpc, 10 * Mpc))
 sim.add(Redshift())
 sim.add(plinst)
 ```
 
-This is the same composition pattern used in `examples/testPlugin.py`, where the instability module is combined with pair production, inverse Compton scattering, and an observer.
+## A realistic cascade pipeline
 
-## Minimal C++ Example
+The snippet above only demonstrates wiring. In a real study you run the full
+cascade so that the instability *competes* with inverse-Compton cooling. This is
+the structure of
+[`examples/testPlugin.py`](https://github.com/rafaelab/grplinst/blob/v2/examples/testPlugin.py):
+
+```python
+from crpropa import *
+from grplinst import *
+
+# background photon fields
+ebl = IRB_Saldana21()
+cmb = CMB()
+
+# source and environment
+z    = 0.0308      # e.g. Mrk 421
+nIGM = 1e-1        # m^-3
+L    = 1e38        # W
+T    = 1e4         # K
+
+# plasma-instability configuration
+temperature = MediumTemperatureHomogeneous(T)
+density     = MediumDensityHomogeneous(nIGM)
+beam        = FlowHomogeneous(L, Vector3d(0, 0, 0))
+plinst      = PlasmaInstabilityBroderick2012(beam, density, temperature)
+
+# cascade physics
+electrons = photons = True
+processes = [
+    Redshift(),
+    EMPairProduction(ebl, electrons),
+    EMPairProduction(cmb, electrons),
+    plinst,                                       # <-- the instability cooling
+    EMInverseComptonScattering(ebl, photons),
+    EMInverseComptonScattering(cmb, photons),
+]
+
+# injection: a power-law photon source at the blazar distance
+source = Source()
+source.add(SourcePowerLawSpectrum(1e9 * eV, 1e14 * eV, -1))
+source.add(SourceParticleType(22))
+source.add(SourcePosition(Vector3d(redshift2ComovingDistance(z), 0, 0)))
+source.add(SourceRedshift1D())
+source.add(SourceDirection(Vector3d(-1, 0, 0)))
+
+# assemble
+sim = ModuleList()
+sim.add(SimplePropagation(1e-3 * kpc, 10 * Mpc))
+for p in processes:
+    sim.add(p)
+sim.add(MaximumTrajectoryLength(4000 * Mpc))
+sim.add(MinimumEnergy(1e9 * eV))
+
+observer = Observer()
+observer.add(Observer1D())
+sim.add(observer)
+
+sim.setShowProgress(True)
+sim.run(source, 10000, True)
+```
+
+**Where to place the module.** Add the instability in the same part of the
+`ModuleList` as the other continuous-loss physics, so that it and inverse-Compton
+scattering both act on the pairs each step. Placing it *after* pair production and
+*before/around* inverse-Compton (as above) is the natural choice.
+
+## Minimal C++ example
 
 ```cpp
 #include <crpropa/ModuleList.h>
@@ -41,66 +120,113 @@ This is the same composition pattern used in `examples/testPlugin.py`, where the
 using namespace crpropa;
 using namespace grplinst;
 
-auto density = new MediumDensityHomogeneous(1e-1);
+auto density     = new MediumDensityHomogeneous(1e-1);
 auto temperature = new MediumTemperatureHomogeneous(1e4);
-auto flow = new FlowHomogeneous(1e38, Vector3d(0, 0, 0));
-auto plasma = new PlasmaInstabilityVafin2018(flow, density, temperature);
+auto beam        = new FlowHomogeneous(1e38, Vector3d(0, 0, 0));
+auto plinst      = new PlasmaInstabilityVafin2018(beam, density, temperature);
 
 ModuleList sim;
 sim.add(new SimplePropagation(1e-3 * kpc, 10 * Mpc));
 sim.add(new Redshift());
-sim.add(plasma);
+sim.add(plinst);
 ```
 
-## Common Use Cases
+## Common patterns
 
-### Homogeneous Parameter Scans
+### Homogeneous parameter scans
 
-For broad comparisons among literature models, use:
+For broad comparisons, keep the environment homogeneous and vary the physical
+inputs and the model class:
 
-- `FlowHomogeneous`
-- `MediumDensityHomogeneous`
-- `MediumTemperatureHomogeneous`
+```python
+for L in [1e37, 1e38, 1e39]:
+    for Model in [PlasmaInstabilityBroderick2012,
+                  PlasmaInstabilitySironi2014,
+                  PlasmaInstabilityVafin2018,
+                  PlasmaInstabilityShalaby2020]:
+        beam   = FlowHomogeneous(L)
+        plinst = Model(beam, MediumDensityHomogeneous(1e-1),
+                             MediumTemperatureHomogeneous(1e4))
+        # ... build and run a simulation, tag the output by (L, Model) ...
+```
 
-This keeps the environmental assumptions fixed while you vary luminosity, density, temperature, redshift, and the chosen instability prescription.
+This is exactly the "run several models over the same grid and report the spread"
+workflow recommended in [Models](models.html#choosing-a-model).
 
-### Luminosity-Driven Miniati Setup
+### Luminosity-driven Miniati setup
 
-If you want the `Miniati2013` prescription, instantiate `PlasmaInstabilityMiniati2013` directly from source luminosity plus medium properties:
+`PlasmaInstabilityMiniati2013` constructs its own beam profile, so you pass a
+**luminosity** instead of a `Flow`:
 
 ```python
 plinst = PlasmaInstabilityMiniati2013(1e38, density, temperature)
 ```
 
-Internally this constructs the flow model with `createFlowMiniati2013(...)`.
+Internally this calls `createFlowMiniati2013(...)` to build a tabulated
+`FlowJet1D` (see [Models](models.html#plasmainstabilityminiati2013)).
 
-### Custom Profiles From Python
+### A tabulated beam profile
 
-The SWIG bindings support Python subclasses of `Flow`, `MediumDensity`, and `MediumTemperature`. That allows custom medium or beam models without recompiling the C++ core.
+If you have a beam density as a function of distance from the source, use
+`FlowJet1D` directly:
+
+```python
+import numpy as np
+distances = np.array([1, 10, 100, 1000]) * Mpc     # monotonic
+densities = np.array([1e-15, 1e-17, 1e-19, 1e-21]) # m^-3, comoving
+
+beam = FlowJet1D(distances, densities, 1e38,
+                 Vector3d(0, 0, 0), True)           # last arg: log interpolation
+```
+
+Distances and densities are interpolated (logarithmically by default); outside the
+tabulated range the nearest endpoint value is held, and the density is scaled by
+`(1+z)³`.
+
+### Custom profiles from Python (SWIG directors)
+
+Because `Flow`, `MediumDensity`, and `MediumTemperature` are exposed as SWIG
+**directors**, you can subclass them in pure Python and override the virtual
+methods — no recompilation needed. Mind the method signatures:
 
 ```python
 class ConstantDensity(MediumDensity):
     def getDensity(self, position, redshift = 0.):
-        return 0.1
+        return 0.1                     # m^-3
 
-class ConstantFlow(Flow):
+class ConstantTemperature(MediumTemperature):
+    def getTemperature(self, position, redshift = 0.):
+        return 1e4                     # K
+
+class ConstantBeam(Flow):
     def getDensity(self, energy, position, redshift = 0.):
-        return 1e-16
+        return 1e-16                   # m^-3   (note the extra `energy` argument)
+
+plinst = PlasmaInstabilityBroderick2012(ConstantBeam(),
+                                        ConstantDensity(),
+                                        ConstantTemperature())
 ```
 
-This path is exercised by the Python tests in `test/testPlugin.py`.
+These subclasses can then be passed anywhere the corresponding C++ type is
+expected. This path is exercised by
+[`test/testPython.py`](https://github.com/rafaelab/grplinst/blob/v2/test/testPython.py).
 
-## Practical Integration Notes
+> **Signature reminder.** `Flow.getDensity` takes `(energy, position, redshift)`,
+> whereas `MediumDensity.getDensity` takes `(position, redshift)`. Getting these
+> wrong is the most common integration mistake.
 
-- Add the plasma-instability module in the same part of the `ModuleList` where you want the effective cooling to compete with the rest of the cascade physics.
-- The instability acts only on electrons and positrons; photons pass through unchanged.
-- The `limit` parameter constrains the next propagation step after a loss update, which matters when you compare models with very short loss times.
-- The `efficiency` parameter is a convenient way to scale the cooling strength for sensitivity tests.
+## Integration notes
 
-## Example Pipelines In This Repository
+- The instability acts **only on electrons and positrons**; photons are
+  untouched.
+- The `limit` parameter constrains the next step to a fraction of the local
+  energy-loss length — important when comparing models with very short cooling
+  times.
+- The `efficiency` parameter (clamped to `[0, 1]`) scales the cooling strength;
+  use `0` to switch the effect off for a baseline run.
+- You can make the beam-density estimate consistent with the rest of the
+  simulation by attaching the same `EMPairProduction` /
+  `EMInverseComptonScattering` modules to the `Flow` with `addPairProduction` /
+  `addInverseCompton` (see [API Reference](api-reference.html#flow)).
 
-- `examples/testPlugin.py`: end-to-end example using `PlasmaInstabilityBroderick2012`.
-- `examples/_test.py`: scratch-style example with `PlasmaInstabilityMiniati2013`.
-- `test/testPlugin.py`: examples of subclassing the public interfaces from Python.
-
-For the available model classes and their literature background, see [Models](models.html).
+For the class-by-class reference and units, see [API Reference](api-reference.html).

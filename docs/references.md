@@ -5,38 +5,53 @@ title: References
 
 # References
 
-## Main Project Paper
+## Method paper — please cite
 
-- R. Alves Batista, A. Saveliev, E. M. de Gouveia Dal Pino, "Plasma effects on fast pair beams and application to the intergalactic medium", MNRAS 489 (2019) 3836. [MNRAS](https://academic.oup.com/mnras/article/489/3/3836/5558261), [arXiv:1904.13345](https://arxiv.org/abs/1904.13345)
+If `grplinst` contributes to your work, please cite:
 
-## Implemented Model References
+> R. Alves Batista, A. Saveliev, E. M. de Gouveia Dal Pino,
+> **"The impact of plasma instabilities on the spectra of TeV blazars"**,
+> Monthly Notices of the Royal Astronomical Society **489** (2019) 3836–3849.
+> [doi:10.1093/mnras/stz2389](https://doi.org/10.1093/mnras/stz2389) ·
+> [arXiv:1904.13345](https://arxiv.org/abs/1904.13345)
 
-- P. Broderick, P. Chang, C. Pfrommer, Astrophys. J. 752 (2012) 22.
-- R. Schlickeiser, D. Ibscher, M. Supsar, Astrophys. J. 758 (2012) 102.
-- L. Sironi, D. Giannios, Astrophys. J. 787 (2014) 49. [arXiv:1312.4538](https://arxiv.org/abs/1312.4538)
-- S. Vafin, M. Pohl, J. Niemiec, A. Bret, Astrophys. J. 865 (2018) 23. [arXiv:1807.04203](https://arxiv.org/abs/1807.04203)
-- A. Bret, L. Gremillet, M. Dieckmann, Phys. Plasmas 17 (2010) 120501. [arXiv:1010.5763](https://arxiv.org/abs/1010.5763)
-- M. Shalaby et al., Phys. Rev. Lett. 124 (2020) 105101. [arXiv:1907.13350](https://arxiv.org/abs/1907.13350)
-- F. Miniati, A. Elyiv, Astrophys. J. 770 (2013) 54. [arXiv:1208.1761](https://arxiv.org/abs/1208.1761)
+## Implemented model prescriptions
 
-## Project Links
+Each row corresponds to a `PlasmaInstability*` class (see [Models](models.html)).
 
-- CRPropa: [https://github.com/CRPropa/CRPropa3](https://github.com/CRPropa/CRPropa3)
-- `grplinst`: [https://github.com/rafaelab/grplinst](https://github.com/rafaelab/grplinst)
+| Model class | Reference |
+| --- | --- |
+| `PlasmaInstabilityBroderick2012` | A. E. Broderick, P. Chang, C. Pfrommer, *Astrophys. J.* **752** (2012) 22. |
+| `PlasmaInstabilitySchlickeiser2012` | R. Schlickeiser, D. Ibscher, M. Supsar, *Astrophys. J.* **758** (2012) 102. |
+| `PlasmaInstabilitySironi2014` | L. Sironi, D. Giannios, *Astrophys. J.* **787** (2014) 49. [arXiv:1312.4538](https://arxiv.org/abs/1312.4538) |
+| `PlasmaInstabilityVafin2018` | S. Vafin, M. Pohl, J. Niemiec, A. Bret, *Astrophys. J.* **865** (2018) 23. [arXiv:1807.04203](https://arxiv.org/abs/1807.04203) |
+| `PlasmaInstabilityBret2010TwoStream`, `PlasmaInstabilityBret2010Filamentation` | A. Bret, L. Gremillet, M. E. Dieckmann, *Phys. Plasmas* **17** (2010) 120501. [arXiv:1010.5763](https://arxiv.org/abs/1010.5763) |
+| `PlasmaInstabilityShalaby2020` | M. Shalaby et al., *Phys. Rev. Lett.* **124** (2020) 105101. [arXiv:1907.13350](https://arxiv.org/abs/1907.13350) |
+| `PlasmaInstabilityMiniati2013` | F. Miniati, A. Elyiv, *Astrophys. J.* **770** (2013) 54. [arXiv:1208.1761](https://arxiv.org/abs/1208.1761) |
 
-## Repository Files Worth Reading
+## Related project links
 
-- Public umbrella header: [include/grplinst.h](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst.h)
-- Plasma-instability interface: [include/grplinst/PlasmaInstability.h](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst/PlasmaInstability.h)
-- Main implementation file: [src/PlasmaInstability.cc](https://github.com/rafaelab/grplinst/blob/v2/src/PlasmaInstability.cc)
-- Example simulation: [examples/testPlugin.py](https://github.com/rafaelab/grplinst/blob/v2/examples/testPlugin.py)
-- Python binding tests: [test/testPlugin.py](https://github.com/rafaelab/grplinst/blob/v2/test/testPlugin.py)
+- **CRPropa 3**: [github.com/CRPropa/CRPropa3](https://github.com/CRPropa/CRPropa3)
+- **grplinst**: [github.com/rafaelab/grplinst](https://github.com/rafaelab/grplinst)
 
-## Reading Order
+## Source files worth reading
 
-If you are new to the codebase, a productive order is:
+The code is compact enough to read directly. Useful entry points:
 
-1. read the main project paper,
-2. inspect [Models](models.html) to identify the implemented prescription you need,
-3. inspect [Usage](usage.html) for the CRPropa integration pattern,
-4. inspect the linked source files if you need the exact formulae.
+- Umbrella header: [`include/grplinst.h`](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst.h)
+- Instability models: [`include/grplinst/PlasmaInstability.h`](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst/PlasmaInstability.h) · [`src/PlasmaInstability.cc`](https://github.com/rafaelab/grplinst/blob/v2/src/PlasmaInstability.cc)
+- Beam density: [`include/grplinst/Flow.h`](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst/Flow.h) · [`src/Flow.cc`](https://github.com/rafaelab/grplinst/blob/v2/src/Flow.cc)
+- Ambient medium: [`include/grplinst/Medium.h`](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst/Medium.h) · [`src/Medium.cc`](https://github.com/rafaelab/grplinst/blob/v2/src/Medium.cc)
+- Example simulation: [`examples/testPlugin.py`](https://github.com/rafaelab/grplinst/blob/v2/examples/testPlugin.py)
+- Python director tests: [`test/testPython.py`](https://github.com/rafaelab/grplinst/blob/v2/test/testPython.py)
+
+## Suggested reading order
+
+If you are new to the codebase:
+
+1. read the [method paper](https://doi.org/10.1093/mnras/stz2389) for the physics and validation;
+2. skim the [Physics Background](physics.html) page for the modelling assumptions;
+3. pick a prescription from [Models](models.html);
+4. follow the [Usage](usage.html) integration pattern;
+5. consult the [API Reference](api-reference.html) or the source files for exact
+   signatures and formulae.
