@@ -72,11 +72,10 @@ inverse-Compton scattering) is given on the [Usage](usage.html) page and in
 
 If `grplinst` contributes to your work, please cite the method paper:
 
-> R. Alves Batista, A. Saveliev, E. M. de Gouveia Dal Pino,
-> *The impact of plasma instabilities on the spectra of TeV blazars*,
-> MNRAS **489** (2019) 3836.
-> [doi:10.1093/mnras/stz2389](https://doi.org/10.1093/mnras/stz2389) ·
-> [arXiv:1904.13345](https://arxiv.org/abs/1904.13345)
+> R. Alves Batista, A. Saveliev, 
+> *Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the grplinst code*, 
+> [doi:10.XXXXXXX](https://doi.org/XXXXX) · 
+> [arXiv:2607.XXXXX](https://arxiv.org/abs/2607.XXXXX)
 
 See [References](references.html) for the full bibliography, including the origin
 of each instability model.

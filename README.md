@@ -2,12 +2,11 @@
 
 [![Documentation](https://github.com/rafaelab/grplinst/actions/workflows/docs.yml/badge.svg)](https://rafaelab.github.io/grplinst/)
 [![Tests](https://github.com/rafaelab/grplinst/actions/workflows/tests.yml/badge.svg)](https://github.com/rafaelab/grplinst/actions/workflows/tests.yml)
-[![DOI](https://img.shields.io/badge/DOI-10.1093%2Fmnras%2Fstz2389-blue)](https://doi.org/10.1093/mnras/stz2389)
 
 Module for the CRPropa code to calculate the effect of plasma instabilities on the development of electromagnetic cascades.
 It is described in:
 
-R. Alves Batista, A. Saveliev, E. M. de Gouveia Dal Pino, *The impact of plasma instabilities on the spectra of TeV blazars*, MNRAS **489** (2019) 3836. [doi:10.1093/mnras/stz2389](https://doi.org/10.1093/mnras/stz2389) · [arXiv:1904.13345](https://arxiv.org/abs/1904.13345)
+R. Alves Batista, A. Saveliev, *Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the grplinst code*, [doi:10.XXXXXXX](https://doi.org/XXXXX) · [arXiv:2607.XXXXX](https://arxiv.org/abs/2607.XXXXX)
 
 If you make use of grplinst, please consider citing the above paper.
 
