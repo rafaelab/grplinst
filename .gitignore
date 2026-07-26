@@ -1,0 +1,6 @@
+__pycache__
+build
+.DS_Store
+include/.DS_Store
+include/grplinst/.DS_Store
+examples/*txt

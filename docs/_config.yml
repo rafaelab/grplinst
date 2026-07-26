@@ -1,0 +1,31 @@
+title: grplinst
+description: >-
+  Plasma-instability energy losses for electromagnetic cascades in CRPropa.
+author: Rafael Alves Batista
+
+# Site URLs. For a GitHub project page served at
+#   https://rafaelab.github.io/grplinst/
+# the base URL must be "/grplinst"; without it the theme's stylesheet and
+# navigation links resolve to the domain root and the site renders unstyled.
+url: https://rafaelab.github.io
+baseurl: /grplinst
+
+# Theme and Markdown engine (both bundled with the github-pages gem).
+theme: minima
+markdown: kramdown
+
+# Top navigation. The home page (index.md) is intentionally omitted; minima
+# links back to it through the site title.
+header_pages:
+  - getting-started.md
+  - physics.md
+  - models.md
+  - usage.md
+  - api-reference.md
+  - references.md
+
+# Do not treat the repository's build artefacts or top-level files as content.
+exclude:
+  - build/
+  - Gemfile
+  - Gemfile.lock

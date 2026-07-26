@@ -1,0 +1,66 @@
+name: Documentation
+
+# Builds the Jekyll site in docs/ and deploys it to GitHub Pages.
+#
+# IMPORTANT (one-time repository setting): for this workflow to take effect,
+# GitHub Pages must be configured to build from GitHub Actions, not from a
+# branch. In the repository, go to
+#   Settings ▸ Pages ▸ Build and deployment ▸ Source  →  "GitHub Actions".
+# If the source is left as "Deploy from a branch" (e.g. the legacy gh-pages
+# branch), the artifact produced here will be ignored.
+
+on:
+  push:
+    branches:
+      - v2            # branch that holds the documentation source
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:  # allow manual runs from the Actions tab
+
+# Least-privilege token plus the scopes the Pages deployment needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Serialise deployments; never cancel an in-flight publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: docs
+          destination: _site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy documentation
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

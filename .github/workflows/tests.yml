@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ubuntu dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes cmake g++ gfortran make swig
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install gcc swig
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip numpy
+
+      - name: Configure
+        run: cmake -S . -B build -DUSE_OWN_CRPROPA=On
+        env:
+          CC: ${{ runner.os == 'macOS' && 'clang' || 'gcc' }}
+          CXX: ${{ runner.os == 'macOS' && 'clang++' || 'g++' }}
+          FC: 'gfortran'
+
+      - name: Build
+        run: cmake --build build --parallel 4
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
