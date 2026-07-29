@@ -8,7 +8,13 @@ title: References
 ## Method paper — please cite
 
 If `grplinst` contributes to your work, please cite:
+> R. Alves Batista, A. Saveliev, 
+> *Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the grplinst code*, 
+> [doi:10.XXXXXXX](https://doi.org/XXXXX) · 
+> [arXiv:2607.XXXXX](https://arxiv.org/abs/2607.XXXXX)
 
+
+The citation for the first version of the code, much simpler than the current design, is this:
 > R. Alves Batista, A. Saveliev, E. M. de Gouveia Dal Pino,
 > **"The impact of plasma instabilities on the spectra of TeV blazars"**,
 > Monthly Notices of the Royal Astronomical Society **489** (2019) 3836–3849.
@@ -18,7 +24,6 @@ If `grplinst` contributes to your work, please cite:
 ## Implemented model prescriptions
 
 Each row corresponds to a `PlasmaInstability*` class (see [Models](models.html)).
-
 | Model class | Reference |
 | --- | --- |
 | `PlasmaInstabilityBroderick2012` | A. E. Broderick, P. Chang, C. Pfrommer, *Astrophys. J.* **752** (2012) 22. |
@@ -34,24 +39,3 @@ Each row corresponds to a `PlasmaInstability*` class (see [Models](models.html))
 - **CRPropa 3**: [github.com/CRPropa/CRPropa3](https://github.com/CRPropa/CRPropa3)
 - **grplinst**: [github.com/rafaelab/grplinst](https://github.com/rafaelab/grplinst)
 
-## Source files worth reading
-
-The code is compact enough to read directly. Useful entry points:
-
-- Umbrella header: [`include/grplinst.h`](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst.h)
-- Instability models: [`include/grplinst/PlasmaInstability.h`](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst/PlasmaInstability.h) · [`src/PlasmaInstability.cc`](https://github.com/rafaelab/grplinst/blob/v2/src/PlasmaInstability.cc)
-- Beam density: [`include/grplinst/Flow.h`](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst/Flow.h) · [`src/Flow.cc`](https://github.com/rafaelab/grplinst/blob/v2/src/Flow.cc)
-- Ambient medium: [`include/grplinst/Medium.h`](https://github.com/rafaelab/grplinst/blob/v2/include/grplinst/Medium.h) · [`src/Medium.cc`](https://github.com/rafaelab/grplinst/blob/v2/src/Medium.cc)
-- Example simulation: [`examples/testPlugin.py`](https://github.com/rafaelab/grplinst/blob/v2/examples/testPlugin.py)
-- Python director tests: [`test/testPython.py`](https://github.com/rafaelab/grplinst/blob/v2/test/testPython.py)
-
-## Suggested reading order
-
-If you are new to the codebase:
-
-1. read the [method paper](https://doi.org/10.1093/mnras/stz2389) for the physics and validation;
-2. skim the [Physics Background](physics.html) page for the modelling assumptions;
-3. pick a prescription from [Models](models.html);
-4. follow the [Usage](usage.html) integration pattern;
-5. consult the [API Reference](api-reference.html) or the source files for exact
-   signatures and formulae.

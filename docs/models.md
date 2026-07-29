@@ -5,19 +5,14 @@ title: Models
 
 # Models
 
-`grplinst` implements several effective plasma-instability prescriptions from the
-literature. Each one is a subclass of
-[`PlasmaInstability`](api-reference.html#plasmainstability-base-class) and
-provides a single function — the **cooling time** $$\tau$$ — which the base class
-turns into an energy loss (see
-[Physics Background §3](physics.html#3-how-grplinst-models-it-effective-cooling)).
-Because they share the same interface, the models are **interchangeable**: swap
-one class for another and rerun.
+`grplinst` implements several effective plasma-instability prescriptions from the literature. 
+Each one is a subclass of [`PlasmaInstability`](api-reference.html#plasmainstability-base-class) and provides a single function —- the **cooling time** ($$\tau$$) —- which the base class turns into an energy loss.
+For details, see [Physics Background §3](physics.html#3-how-grplinst-models-it-effective-cooling).
+Because they share the same interface, most of the models are **interchangeable**: swap one class for another and rerun.
 
 ## Notation
 
-Every formula below is written in terms of the following **scaled variables**, so
-the numbers match the source code directly. $$\tau$$ is in **seconds**.
+Every formula below is written in terms of the following **scaled variables**, so the numbers match the source code directly. $$\tau$$ is in **seconds**.
 
 | Symbol | Definition | Fiducial value |
 | --- | --- | --- |
@@ -26,10 +21,8 @@ the numbers match the source code directly. $$\tau$$ is in **seconds**.
 | $$\tilde{n}$$ | ambient density $$n / 0.1\,\mathrm{m^{-3}}$$ (from the [`MediumDensity`](api-reference.html#mediumdensity)) | 1 |
 | $$\tilde{T}$$ | ambient temperature $$T / 10^{4}\,\mathrm{K}$$ (from the [`MediumTemperature`](api-reference.html#mediumtemperature)) | 1 |
 
-A model uses only the inputs that appear in its formula; the others may be omitted
-(pass any placeholder object). Several models are **piecewise**, switching between
-a weak/linear branch and a saturated branch at a critical beam density
-$$n_\mathrm{crit}$$.
+A model uses only the inputs that appear in its formula; the others may be omitted (pass any placeholder object). 
+Several models are **piecewise**, switching between a weak/linear branch and a saturated branch at a critical beam density $$n_\mathrm{crit}$$.
 
 ## Implemented prescriptions
 
@@ -138,51 +131,30 @@ not a `Flow`. See [Usage](usage.html#luminosity-driven-miniati-setup).
 
 ## Choosing a model
 
-- For direct comparisons among the **early effective prescriptions**, use
-  `Broderick2012`, `Sironi2014`, and `Schlickeiser2012`.
+- For direct comparisons among the **early effective prescriptions**, use `Broderick2012`, `Sironi2014`, and `Schlickeiser2012`.
 - For **later literature fits**, add `Vafin2018` and `Shalaby2020`.
-- To isolate a **specific instability channel**, compare `Bret2010TwoStream`
-  against `Bret2010Filamentation`.
-- Use `Miniati2013` when you prefer to specify a **source luminosity** and let the
-  module derive the beam profile.
+- To isolate a **specific instability channel**, compare `Bret2010TwoStream` against `Bret2010Filamentation`.
+- Use `Miniati2013` when you prefer to specify a **source luminosity** and let the module derive the beam profile.
 
-Because the prescriptions can disagree by orders of magnitude, the recommended
-workflow is to run **several models over the same grid** of luminosity, density,
-temperature, and redshift, and report the spread — not to rely on a single class.
 
 ## Control parameters (inherited)
 
-Every model inherits two practical knobs from the base class, both optional
-constructor arguments:
-
-- **`efficiency`** ($$\eta$$, default `1`): multiplies the energy-loss rate.
-  Clamped to $$[0, 1]$$ — negative values become `0`, values above `1` become `1`
-  (a warning is logged). Set to `0` to disable the instability, or to a fraction
-  to test sensitivity.
-- **`limit`** (default `0.1`): the next propagation step is restricted to this
-  fraction of the local energy-loss length, so short cooling times are resolved.
-
+Every model inherits two practical knobs from the base class, both optional constructor arguments:
+- **`efficiency`** ($$\eta$$, default `1`): multiplies the energy-loss rate. Clamped to $$[0, 1]$$ — negative values become `0`, values above `1` become `1` (a warning is logged). Set to `0` to disable the instability, or to a fraction to test sensitivity.
+- **`limit`** (default `0.1`): the next propagation step is restricted to this fraction of the local energy-loss length, so short cooling times are resolved.
 ```python
-# 30% efficiency, tighter step control
-plinst = PlasmaInstabilityVafin2018(beam, density, temperature, 0.3, 0.05)
+plinst = PlasmaInstabilityVafin2018(beam, density, temperature, 0.3, 0.05) # # 30% efficiency, tighter step control
 ```
 
 ## Helper functions
 
-Two free functions are exposed for analytical estimates and are used internally by
-`Miniati2013`:
+Two free functions are exposed for analytical estimates and are used internally by `Miniati2013`:
+- `plasmaFrequency(density, id=11)`: the plasma frequency $$\omega_p = \sqrt{n q^2 / (m \varepsilon_0)}$$ in Hz, for the given particle species (electron by default; nuclei use their charge and mass).
+- `maximumLinearGrowthFrequency(beamDensity, mediumDensity, lorentzFactor, id=11)`: the maximum linear growth rate $$\omega_p(n)\,(n_b/n)\,(1/\gamma)$$ in Hz.
+Neglects magnetic fields and assumes an angular spread $$\Delta\theta = \langle 1/\gamma \rangle$$.
 
-- `plasmaFrequency(density, id=11)` — the plasma frequency
-  $$\omega_p = \sqrt{n q^2 / (m \varepsilon_0)}$$ in Hz, for the given particle
-  species (electron by default; nuclei use their charge and mass).
-- `maximumLinearGrowthFrequency(beamDensity, mediumDensity, lorentzFactor, id=11)`
-  — the maximum linear growth rate $$\omega_p(n)\,(n_b/n)\,(1/\gamma)$$ in Hz.
-  Neglects magnetic fields and assumes an angular spread
-  $$\Delta\theta = \langle 1/\gamma \rangle$$.
-
-Their scaling behaviour ($$\omega_p \propto \sqrt{n}$$, growth rate linear in
-$$n_b$$ and inverse in $$\gamma$$) is checked in
+Their scaling behaviour ($$\omega_p \propto \sqrt{n}$$, growth rate linear in $$n_b$$ and inverse in $$\gamma$$) is checked in
 [`test/testPlasmaInstability.cpp`](https://github.com/rafaelab/grplinst/blob/v2/test/testPlasmaInstability.cpp).
 
-For the papers behind each model, see [References](references.html). For CRPropa
-integration, continue with [Usage](usage.html).
+For the papers behind each model, see [References](references.html). 
+For CRPropa integration, continue with [Usage](usage.html).

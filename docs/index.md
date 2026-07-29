@@ -5,33 +5,21 @@ title: grplinst
 
 # grplinst
 
-**`grplinst`** ("group–plasma instabilities") is an extension for the
-[CRPropa 3](https://github.com/CRPropa/CRPropa3) propagation code. It models the
-energy losses that **plasma (beam) instabilities** are expected to inflict on the
-electron–positron pairs produced in **blazar-induced electromagnetic cascades**
-as they travel through the intergalactic medium (IGM).
+**`grplinst`** ("group–plasma instabilities") is an extension for the [CRPropa 3](https://github.com/CRPropa/CRPropa3) propagation code. 
+It models the energy losses that plasma instabilities induced by interactions of cascade electron–positron pairs interacting with the intergalactic medium (IGM).
 
 The module supplies:
+- a family of `PlasmaInstability*` modules that plug straight into a CRPropa `ModuleList`, each implementing a different literature prescription for the instability cooling time;
+- `Flow` classes that describe the **pair-beam density** the cascade drives into the IGM;
+- `MediumDensity` and `MediumTemperature` classes that describe the ambient plasma;
+- helper functions such as `plasmaFrequency` and `maximumLinearGrowthFrequency`;
+- full **Python bindings** through SWIG, so every component can be configured, sub-classed, and combined from Python.
 
-- a family of `PlasmaInstability*` modules that plug straight into a CRPropa
-  `ModuleList`, each implementing a different literature prescription for the
-  instability cooling time;
-- `Flow` classes that describe the **pair-beam density** the cascade drives into
-  the IGM;
-- `MediumDensity` and `MediumTemperature` classes that describe the ambient
-  plasma;
-- helper functions such as `plasmaFrequency` and
-  `maximumLinearGrowthFrequency`;
-- full **Python bindings** through SWIG, so every component can be configured,
-  sub-classed, and combined from Python.
-
-> **A word of caution.** Plasma instabilities in a dilute relativistic pair beam
-> are a genuinely hard kinetic problem. `grplinst` does **not** solve it from
-> first principles; it wraps a set of *effective* cooling prescriptions taken
-> from the literature and lets you compare them within the same cascade
-> simulation. A fully self-consistent treatment requires particle-in-cell (PIC)
-> methods. Please read the [Physics Background](physics.html) page before drawing
-> quantitative conclusions.
+> **A word of caution.** 
+> Plasma instabilities in a dilute relativistic pair beam are a genuinely hard kinetic problem. 
+> `grplinst` does **not** solve it from first principles; it wraps a set of *effective* cooling prescriptions taken from the literature and lets you compare them within the same cascade simulation. 
+> A fully self-consistent treatment requires particle-in-cell (PIC) methods. 
+> Please read the [Physics Background](physics.html) page before drawing quantitative conclusions.
 
 ## Where to go next
 
@@ -51,9 +39,9 @@ from crpropa import *
 from grplinst import *
 
 # ambient intergalactic medium and pair beam
-temperature = MediumTemperatureHomogeneous(1e4)     # K
-density     = MediumDensityHomogeneous(1e-1)         # m^-3
-beam        = FlowHomogeneous(1e38, Vector3d(0, 0, 0))  # source luminosity in W
+temperature = MediumTemperatureHomogeneous(1e4) # K
+density = MediumDensityHomogeneous(0.1) # m^-3
+beam = FlowHomogeneous(1e38, Vector3d(0, 0, 0)) # source luminosity in W
 
 # one instability prescription, ready to drop into a ModuleList
 plinst = PlasmaInstabilityBroderick2012(beam, density, temperature)
@@ -64,18 +52,14 @@ sim.add(Redshift())
 sim.add(plinst)
 ```
 
-A complete, physically meaningful pipeline (with pair production and
-inverse-Compton scattering) is given on the [Usage](usage.html) page and in
-[`examples/testPlugin.py`](https://github.com/rafaelab/grplinst/blob/v2/examples/testPlugin.py).
+A complete, physically meaningful pipeline (with pair production and inverse-Compton scattering) is given on the [Usage](usage.html) page and in [`examples/testPlugin.py`](https://github.com/rafaelab/grplinst/blob/v2/examples/testPlugin.py).
 
-## Citing grplinst
+## Citing `grplinst`
 
 If `grplinst` contributes to your work, please cite the method paper:
-
 > R. Alves Batista, A. Saveliev, 
 > *Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the grplinst code*, 
 > [doi:10.XXXXXXX](https://doi.org/XXXXX) · 
 > [arXiv:2607.XXXXX](https://arxiv.org/abs/2607.XXXXX)
 
-See [References](references.html) for the full bibliography, including the origin
-of each instability model.
+See [References](references.html) for the full bibliography, including the origin of each instability model.
