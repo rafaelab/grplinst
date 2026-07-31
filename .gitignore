@@ -4,7 +4,6 @@ build
 include/.DS_Store
 include/grplinst/.DS_Store
 examples/*txt
-docs/_layouts
 docs/_site
 docs/.jekyll-cache
 docs/Gemfile
