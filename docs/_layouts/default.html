@@ -1,0 +1,47 @@
+---
+---
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: 'en' }}">
+
+	{%- include head.html -%}
+
+
+	<body>
+
+		{%- include header.html -%}
+
+		<main class="page-content" aria-label="Content">
+			<div class="wrapper">
+				{{ content }}
+			</div>
+		</main>
+
+		{%- include footer.html -%}
+
+		<!--
+		MathJax for LaTeX rendering.
+		kramdown (the GitHub Pages Markdown engine) converts $$...$$ math into <script type="math/tex"> elements, which MathJax 2 renders natively.
+		The tex2jax block below is a fallback that also scans for raw $$...$$ and \(...\) delimiters in case math passes through unconverted.
+		-->
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({
+				tex2jax: {
+					inlineMath: [['\\(', '\\)']],
+					displayMath: [['$$', '$$'], ['\\[', '\\]']],
+					processEscapes: true,
+					skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+				},
+				TeX: {
+					extensions: ['AMSmath.js', 'AMSsymbols.js']
+				}
+			});
+		</script>
+		<script type="text/javascript" async
+			src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+		</script>
+
+		<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+
+	</body>
+
+</html>
