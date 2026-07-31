@@ -11,9 +11,9 @@ This page walks through building `grplinst` against CRPropa and running the test
 ## Prerequisites
 - **CRPropa** (≥ 3.3): Either an existing installation discoverable through `find_package(CRPropa)`, or built on the fly with the `USE_OWN_CRPROPA` option (see below).
 - **C++17**: The compiler, compatible with C++17 standards. Tested for some versions of GCC and Clang. 
-- **Fortran compiler** (`gfortran`): Needed by CRPropa's dependencies when it is built from source. |
+- **Fortran compiler** (`gfortran`): Needed by CRPropa's dependencies when it is built from source. 
 - **CMake** ≥ 3.14
-- **SWIG 4+**, **Python 3**, **NumPy** | Only required for the Python bindings (`ENABLE_PYTHON`, on by default). |
+- **SWIG 4+**, **Python 3**, **NumPy**: Only required for the Python bindings (`ENABLE_PYTHON`, on by default). 
 
 On Debian/Ubuntu the toolchain is:
 ```bash
