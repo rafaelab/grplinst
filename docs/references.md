@@ -10,7 +10,7 @@ title: References
 If `grplinst` contributes to your work, **please cite**:
 > "Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the `grplinst` code" \
 > R. Alves Batista, A. Saveliev \
-> [[doi]](https://doi.org/XXXXX)  |  [[arXiv]](https://arxiv.org/abs/2608.XXXXX)
+> [[doi]](https://doi.org/10.48550/arXiv.2608.01166)  ||  [[arXiv]](https://arxiv.org/abs/2608.01666)
 
 
 The citation for the first version of the code, much simpler than the current design, is this:

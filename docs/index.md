@@ -57,9 +57,8 @@ A complete, physically meaningful pipeline (with pair production and inverse-Com
 ## Citing `grplinst`
 
 If `grplinst` contributes to your work, please cite the method paper:
-> R. Alves Batista, A. Saveliev, 
-> *Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the grplinst code*, 
-> [doi:10.XXXXXXX](https://doi.org/XXXXX) · 
-> [arXiv:2607.XXXXX](https://arxiv.org/abs/2607.XXXXX)
+> "Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the `grplinst` code" \
+> R. Alves Batista, A. Saveliev \
+> [[doi]](https://doi.org/10.48550/arXiv.2608.01166)  ||  [[arXiv]](https://arxiv.org/abs/2608.01666)
 
 See [References](references.html) for the full bibliography, including the origin of each instability model.

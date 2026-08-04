@@ -5,8 +5,10 @@
 
 Module for the CRPropa code to calculate the effect of plasma instabilities on the development of electromagnetic cascades.
 It is described in:
+> "Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the `grplinst` code" \
+> R. Alves Batista, A. Saveliev \
+> [[doi]](https://doi.org/10.48550/arXiv.2608.01166)  ||  [[arXiv]](https://arxiv.org/abs/2608.01666)
 
-R. Alves Batista, A. Saveliev, *Simulations of Electromagnetic Cascades in the Intergalactic Medium with Plasma Instabilities: the grplinst code*, [doi:10.XXXXXXX](https://doi.org/XXXXX) · [arXiv:2607.XXXXX](https://arxiv.org/abs/2607.XXXXX)
 
 If you make use of grplinst, please consider citing the above paper.
 
